@@ -1,0 +1,459 @@
+---
+title: "Using table.express"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using table.express}
+  %\VignetteEngine{knitr::rmarkdown_notangle}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+library("table.express")
+library("data.table")
+library("magrittr")
+
+# knitr defaults
+knitr::opts_chunk$set(comment = "#>")
+
+options("datatable.print.nrows" = 4L)
+options("datatable.print.topn" = 2L)
+```
+
+The goal of this package is to offer an alternative way of **expressing** common operations with
+[`data.table`](https://cran.r-project.org/package=data.table)
+without sacrificing the performance optimizations that it offers.
+The foundation for the data manipulation verbs is the
+[`dplyr`](https://cran.r-project.org/package=dplyr)
+package,
+which also advocates the piping operator from the
+[`magrittr`](https://cran.r-project.org/package=magrittr)
+package.
+The [`rlang`](https://cran.r-project.org/package=rlang)
+package powers most of this package's functionality,
+which means that
+[tidy evaluation](https://tidyeval.tidyverse.org/)
+can also be supported.
+There are other resources that provide comprehensive descriptions of these packages,
+so they will not be explained here.
+
+Even though using data manipulation verbs can improve expressiveness in some cases,
+this is not always true,
+so using the traditional `data.table` syntax might still be preferable in many situations.
+
+In order to resemble SQL syntax more closely,
+a couple of verb aliases are also defined:
+
+- `where`, being equivalent to `dplyr`'s `filter`.
+- `order_by`, being equivalent to `dplyr`'s `arrange`.
+
+The examples here will be working with the `mtcars` data:
+
+```{r mtcars}
+data("mtcars")
+
+DT <- mtcars %>%
+  as.data.table %T>%
+  print
+```
+
+## Expression delimiters
+
+The foundation for this package is building expressions that are almost entirely delegated to `data.table`.
+These expressions are built by *parsing* the input of the different verbs.
+In order to explicitly show when an expression is being built and subsequently evaluated,
+we use 3 delimiters:
+
+- `start_expr`
+- `end_expr`
+- `chain`
+
+These also serve as visual reminders that we are not dealing directly with `data.table`s during the process.
+We capture the input `data.table` and start the process with `start_expr`,
+and evaluate the final expression with `end_expr`.
+Using `chain` is equivalent to calling `end_expr` immediately followed by `start_expr`.
+
+## Arranging rows
+
+The `arrange`/`order_by` verbs add an expression with `order` to the frame,
+and let `data.table` handle it as usual:
+
+```{r arrange}
+DT %>%
+  start_expr %>%
+  order_by(mpg, -cyl) %T>%
+  print %>%
+  end_expr
+```
+
+We see here that the built expression includes a `.DT_` pronoun.
+When the expression is evaluated,
+the captured `data.table` is assigned to the evaluation environment as said pronoun.
+
+## Selecting columns
+
+Even though selecting a subset of columns is a common operation,
+it may be undesirable to do so when working with `data.table`s because they lead to data copies.
+
+```{r df-copy}
+x <- 1:2
+tracemem(x)
+
+df <- data.frame(x=x)
+x2 <- df[, "x"]
+x2[1L] <- 0L
+```
+
+With this normal data frame,
+only the last assignment triggered a copy.
+
+```{r dt-copy}
+dt <- data.table(x=x)
+x3 <- dt[, x]
+```
+
+In this case with `data.table`,
+more copies were triggered.
+Given that `data.table` supports modification by reference,
+these copies are necessary.
+
+With that said,
+the `select` verb can be used as usual:
+
+```{r select}
+DT %>%
+  start_expr %>%
+  select(mpg, am) %T>%
+  print %>%
+  end_expr
+```
+
+To maintain consistency,
+even single columns are kept as `data.table`s:
+
+```{r select-single}
+DT %>%
+  start_expr %>%
+  select(mpg) %T>%
+  print %>%
+  end_expr
+```
+
+In the case of single expressions in `select`,
+calls to `tidyselect`'s helpers or to `:` are handled specially internally:
+
+```{r select-special}
+DT %>%
+  start_expr %>%
+  select(mpg:cyl) %>%
+  end_expr
+
+DT %>%
+  start_expr %>%
+  select(contains("M", ignore.case = TRUE)) %>%
+  end_expr
+```
+
+Tidy evaluation and the `.parse` argument can also aid in cases where certain parts of the frame were computed programmatically:
+
+```{r select-tidy}
+selected <- c("mpg", "am")
+DT %>%
+  start_expr %>%
+  select(!!!selected, .parse = TRUE) %>%
+  end_expr
+```
+
+## Transmuting columns
+
+Given the way `data.table` handles the `j` part of the frame,
+creating and keeping only new columns
+(like with `dplyr`'s `transmute`)
+can be done with `select`,
+so `transmute` is simply an alias during expression building.
+
+```{r transmute}
+DT %>%
+  start_expr %>%
+  select(foo = mpg * 2, bar = exp(cyl)) %>%
+  end_expr
+
+DT %>%
+  start_expr %>%
+  transmute(foo = mpg * 2, bar = exp(cyl)) %>%
+  end_expr
+```
+
+## Mutating columns
+
+The `mutate` verb builds an expression with `:=` in order to perform assignment by reference by default.
+This can be avoided by passing `.by_ref = FALSE` to `end_expr`,
+which will use `data.table::copy` before assigning `.DT_`:
+
+```{r mutate}
+DT %>%
+  start_expr %>%
+  mutate(mpg = mpg / 2, hp = log(hp))
+
+DT %>%
+  start_expr %>%
+  mutate(mpg = mpg / 2, hp = log(hp)) %>%
+  end_expr(.by_ref = FALSE) %>% {
+    invisible(print(.))
+  }
+
+print(DT)
+```
+
+## Filtering rows
+
+The `where`/`filter` verbs work with the `i` part of the frame:
+
+```{r filter}
+DT %>%
+  start_expr %>%
+  filter(vs == 1L, carb > 2L) %T>%
+  print %>%
+  end_expr
+
+DT %>%
+  start_expr %>%
+  select(mean_mpg = mean(mpg)) %>%
+  where(vs == 1L, carb > 2L, .collapse = `|`) %T>%
+  print %>%
+  end_expr
+```
+
+The helper verb `filter_sd` can be used to apply the same conditions to many columns,
+and it can use a special pronoun `.COL` while specifying the expression,
+as well as `tidyselect` helpers to choose `.SDcols`
+(with caveats, see [eager verbs](#eager-verbs)):
+
+```{r filter-sd}
+DT %>%
+  start_expr %>%
+  filter_sd(`>`, 20, .SDcols = c("mpg", "qsec")) %T>%
+  print %>%
+  end_expr
+
+DT %>%
+  start_expr %>%
+  filter_sd(.COL > 20, .SDcols = c("mpg", "qsec")) %>%
+  end_expr
+
+DT %>%
+  start_expr %>%
+  filter_sd(.COL > 0, .SDcols = contains("m"))
+```
+
+### Using keys or secondary indices
+
+The `filter_on` verb can be used to build an expression that specifies the `on` argument of the frame.
+It accepts key-value pairs where each key is a column in the data,
+and each value is the corresponding value that the column should have to match:
+
+```{r filter-on}
+DT %>%
+  start_expr %>%
+  filter_on(cyl = 6, am = 0) %T>%
+  print %>%
+  end_expr
+
+DT %>%
+  start_expr %>%
+  filter_on(cyl = 6, am = 0, mult = "first") %>%
+  end_expr
+```
+
+## Modifying subset of data
+
+In order to support functionality similar to `data.table`'s `DT[, lapply(.SD, fun), .SDcols = c("...")]` syntax,
+2 `data.table`-specific verbs are provided: `mutate_sd` and `transmute_sd`.
+
+Starting with `mutate_sd`,
+it modifies columns in `.SDcols` by reference,
+and columns that are not part of `.SDcols` are kept:
+
+```{r mutate-sd}
+DT %>%
+  start_expr %>%
+  mutate_sd(exp, .SDcols = c("mpg", "cyl")) %>%
+  end_expr
+
+print(DT)
+```
+
+Additionally, `mutate_sd` supports the special `.COL` pronoun that symbolizes the column that should be modified,
+and can be used to express the mutation expression:
+
+```{r mutate-sd-col}
+DT %>%
+  start_expr %>%
+  mutate_sd(log(.COL), .SDcols = c("mpg", "cyl")) %>%
+  end_expr
+
+print(DT)
+```
+
+On the other hand, `transmute_sd` never modifies by reference,
+and supports special expressions to "build" what is chosen as `.SDcols`.
+These expressions can use `tidyselect` helpers,
+as well as another special pronoun: `.COLNAME`:
+
+```{r transmute-sd}
+DT %>%
+  start_expr %>%
+  transmute_sd(.COL * 2, .SDcols = starts_with("d")) %>%
+  end_expr
+
+DT %>%
+  start_expr %>%
+  transmute_sd(.COL * 2, .SDcols = grepl("^d", .COLNAME)) %>%
+  end_expr
+```
+
+## Data manipulation by group
+
+Since `data.table` already supports this by means of its `by` parameter,
+the `group_by` verb simply parses its input and assigns it accordingly:
+
+```{r group-by}
+DT %>%
+  start_expr %>%
+  select(.N) %>%
+  group_by(gear) %T>%
+  print %>%
+  end_expr
+```
+
+The `key_by` verb does the same but sets the key of the result in order to sort:
+
+```{r key-by}
+DT %>%
+  start_expr %>%
+  select(.N) %>%
+  key_by(gear) %T>%
+  print %>%
+  end_expr
+```
+
+## Automatic expression chaining
+
+A `data.table`'s frame has 3 main elements:
+[`i`, `j`, and `by`](https://github.com/Rdatatable/data.table/wiki).
+By default, the verbs defined in this package automatically start a new frame whenever they want to define one of these elements,
+but the current expression's frame has already specified it;
+otherwise they add to the current frame.
+More complex expressions are thus supported by automatically chaining `data.table` frames:
+
+```{r chaining}
+DT %>%
+  start_expr %>%
+  select(mean_mpg = mean(mpg)) %>%
+  where(hp > 50L) %>%
+  group_by(vs, am, gear) %>%
+  order_by(gear, -vs, am) %>%
+  filter(mean_mpg > 20) %T>%
+  print %>%
+  end_expr %>% {
+    invisible(print(., nrows = 10L))
+  }
+```
+
+If we wanted to be explicit about chaining whenever possible
+(see [below](#explicit-chaining)),
+we could set `options(table.express.chain = FALSE)`,
+which would lead to a warning being shown whenever a part of the query is replaced.
+
+### Verbs' effects in the frame
+
+- Verbs that set `i`:
+  - `arrange`
+  - `filter`
+  - `filter_on`
+  - `filter_sd`
+  - `order_by`
+  - `where`
+- Verbs that set `j`:
+  - `mutate`
+  - `mutate_sd`
+  - `transmute`
+  - `transmute_sd`
+- Verbs for grouping:
+  - `group_by` to specify `by`
+  - `key_by` to specify `keyby`
+
+## Explicit chaining
+
+The automatic chaining mentioned above is not a problem in most situations.
+For example the following chains lead to the same result,
+and therefore have the same semantics:
+
+```{r two-chains-one-semantic}
+DT[mpg > 20, mpg * 2]
+
+DT[mpg > 20][, mpg * 2]
+```
+
+However, these two chains have different semantics:
+
+```{r two-chains-two-semantics}
+DT[, .(mpg = mpg * 2)][mpg > 40]
+
+DT[mpg > 40, .(mpg = mpg * 2)]
+```
+
+As mentioned [above](#expression-delimiters),
+`chain` can be used to chain expressions by evaluating the current one with `end_expr`,
+and immediately capturing the resulting `data.table` to start building a new expression.
+This can be helpful in situations where automatic chaining
+(or lack thereof)
+can lead to a change in the expression's semantics:
+
+```{r two-exprs-two-semantics}
+DT %>%
+  start_expr %>%
+  transmute(mpg = mpg * 2) %>%
+  filter(mpg > 40) %T>%
+  print %>%
+  end_expr
+
+DT %>%
+  start_expr %>%
+  transmute(mpg = mpg * 2) %>%
+  chain %>%
+  filter(mpg > 40) %>%
+  end_expr
+```
+
+### Eager verbs
+
+In the following cases, the mentioned verbs use the captured `data.table` eagerly during expression building:
+
+- `filter_sd` when `.SDcols` is a `tidyselect` call.
+- `mutate_sd` when `.SDcols` is a `tidyselect` call.
+
+This can lead to unexpected results if we don't keep in mind the expression that is built:
+
+```{r implicit-chain-filter_sd}
+DT[, mpg:disp]
+
+DT %>%
+  start_expr %>%
+  select(mpg:disp) %>%
+  transmute(ans = sqrt(mpg)) %>%
+  filter_sd(.COL > 0, .SDcols = contains("m"))
+```
+
+The `select` gets rid of `am`,
+but `filter_sd` sees the columns of `DT` before any expression has been evaluated.
+Explicit chaining can help in these cases,
+capturing intermediate results:
+
+```{r explicit-chain-filter_sd}
+DT %>%
+  start_expr %>%
+  select(mpg:disp) %>%
+  chain %>%
+  transmute(ans = sqrt(mpg)) %>%
+  filter_sd(.COL > 0, .SDcols = contains("m"))
+```
