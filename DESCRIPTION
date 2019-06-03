@@ -1,15 +1,15 @@
 Package: table.express
 Type: Package
-Title: Building 'data.table' Expressions with Data Manipulation Verbs
+Title: Build 'data.table' Expressions with Data Manipulation Verbs
 Description: A specialization of 'dplyr' data manipulation verbs that parse and build expressions
     which are ultimately evaluated by 'data.table', letting it handle all optimizations. A set of
-    additional verbs are also provided to facilitate some common operations on a subset of the data.
-Version: 0.1.0
+    additional verbs is also provided to facilitate some common operations on a subset of the data.
+Version: 0.1.1
 Depends: R (>= 3.1.0)
-Imports: utils, data.table (>= 1.9.8), dplyr, magrittr, R6, rlang (>=
-        0.3.0), tidyselect
+Imports: methods, utils, data.table (>= 1.9.8), dplyr, magrittr, R6,
+        rlang (>= 0.3.0), tidyselect
 Suggests: knitr, rex, rmarkdown, testthat
-Date: 2019-05-29
+Date: 2019-06-03
 Authors@R: c(
         person("Alexis", "Sarda-Espinosa", role=c("cre", "aut"), email="alexis.sarda@gmail.com")
     )
@@ -23,8 +23,8 @@ LazyData: TRUE
 RoxygenNote: 6.1.1
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2019-05-29 16:43:49 UTC; oso_a
+Packaged: 2019-06-03 21:53:06 UTC; oso_a
 Author: Alexis Sarda-Espinosa [cre, aut]
 Maintainer: Alexis Sarda-Espinosa <alexis.sarda@gmail.com>
 Repository: CRAN
-Date/Publication: 2019-05-31 16:20:03 UTC
+Date/Publication: 2019-06-03 23:50:03 UTC

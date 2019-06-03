@@ -37,29 +37,28 @@ parse_dots <- function(.parse = FALSE, ..., .named = FALSE, .unquote_names = TRU
 #'
 reduce_expr <- function(quosures, init, op, ..., .parse = FALSE) {
     Reduce(x = quosures, init = init, f = function(current, new) {
-        if (is.list(new))
+        if (is.list(new)) {
             new <- lapply(new, to_expr, .parse = .parse)
-        else
-            new <- to_expr(new, .parse = .parse)
-
-        if (is.list(new))
             rlang::quo_squash(rlang::expr((!!op)(!!current, !!!new)))
-        else
+        }
+        else {
+            new <- to_expr(new, .parse = .parse)
             rlang::quo_squash(rlang::expr((!!op)(!!current, !!new)))
+        }
     })
 }
 
-#' is_fun
+#' @importFrom methods is
+#' @importFrom rlang eval_tidy
 #'
-#' Like [rlang::is_function()] but doesn't throw if the input is maybe something to be quoted.
-#'
-#' @keywords internal
-#' @importFrom rlang is_function
-#'
-#' @param obj Anything really.
-#'
-is_fun <- function(obj) {
-    isTRUE(try(rlang::is_function(obj), silent = TRUE))
+evaled_is <- function(obj_quo, classes) {
+    evaled <- try(rlang::eval_tidy(obj_quo), silent = TRUE)
+    if (inherits(evaled, "try-error")) {
+        return(FALSE)
+    }
+
+    ans <- sapply(classes, function(cl) { methods::is(evaled, cl) })
+    any(ans)
 }
 
 #' @importFrom rlang eval_tidy
