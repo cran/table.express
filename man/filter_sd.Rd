@@ -4,18 +4,18 @@
 \alias{filter_sd}
 \title{Filter subset of data}
 \usage{
-filter_sd(.data, .how = Negate(is.na), ..., .SDcols, .collapse = `&`,
+filter_sd(.data, .SDcols, .how = Negate(is.na), ..., .collapse = `&`,
   .parse = getOption("table.express.parse", FALSE),
   .chain = getOption("table.express.chain", TRUE))
 }
 \arguments{
 \item{.data}{An instance of \link{ExprBuilder}.}
 
-\item{.how}{The function or function call that will perform the transformation.}
+\item{.SDcols}{See \link[data.table:data.table]{data.table::data.table} and the details here.}
+
+\item{.how}{The filtering function or predicate.}
 
 \item{...}{Possibly more arguments for \code{.how}.}
-
-\item{.SDcols}{See \link[data.table:data.table]{data.table::data.table} and the details here.}
 
 \item{.collapse}{See \link{where-table.express}.}
 
@@ -28,13 +28,19 @@ clause being set already exists?}
 Helper to filter rows with the same condition applied to a subset of the data.
 }
 \details{
-This function adds/chains a \code{where} expression that will be evaluated by
-\link[data.table:data.table]{data.table::data.table}. The \code{.how} condition is applied to all specified \code{.SDcols}, and it
-supports the \code{.COL} pronoun.
+This function adds/chains an \code{i} expression that will be evaluated by \link[data.table:data.table]{data.table::data.table},
+and it supports the \code{.COL} pronoun. The \code{.how} condition is applied to all \code{.SDcols}.
 
-Additionally, \code{.SDcols} supports \link[tidyselect:select_helpers]{tidyselect::select_helpers}, with the caveat that the
-expression is evaluated eagerly, i.e. with the currently captured \code{data.table}. Consider using
-\code{\link[=chain]{chain()}} to explicitly capture intermediate results as actual \code{data.table}s.
+Additionally, \code{.SDcols} supports:
+\itemize{
+\item \link[tidyselect:select_helpers]{tidyselect::select_helpers}
+\item A predicate using the \code{.COL} pronoun that should return a single logical when \code{.COL} is
+replaced by a \emph{column} of the data.
+}
+
+The caveat is that the expression is evaluated eagerly, i.e. with the currently captured
+\code{data.table}. Consider using \code{\link[=chain]{chain()}} to explicitly capture intermediate results as actual
+\code{data.table}s.
 
 To see more examples, check the
 \href{https://asardaes.github.io/table.express/articles/table.express.html}{vignette}, or the
@@ -46,6 +52,6 @@ data("mtcars")
 
 data.table::as.data.table(mtcars) \%>\%
     start_expr \%>\%
-    filter_sd(.COL == 1, .SDcols = c("vs", "am"))
+    filter_sd(c("vs", "am"), .COL == 1)
 
 }

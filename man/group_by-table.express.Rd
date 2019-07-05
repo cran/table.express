@@ -3,10 +3,11 @@
 \name{group_by-table.express}
 \alias{group_by-table.express}
 \alias{group_by.ExprBuilder}
-\title{Group by clause}
+\title{Grouping clauses}
 \usage{
 \method{group_by}{ExprBuilder}(.data, ...,
-  .parse = getOption("table.express.parse", FALSE))
+  .parse = getOption("table.express.parse", FALSE),
+  .chain = getOption("table.express.chain", TRUE))
 }
 \arguments{
 \item{.data}{An instance of \link{ExprBuilder}.}
@@ -14,9 +15,12 @@
 \item{...}{Clause for grouping on columns. The \code{by} inside the \code{data.table}'s frame.}
 
 \item{.parse}{Logical. Whether to apply \code{\link[rlang:parse_expr]{rlang::parse_expr()}} to obtain the expressions.}
+
+\item{.chain}{Logical. Should a new frame be automatically chained to the expression if the
+clause being set already exists?}
 }
 \description{
-Aggregations for a \link[data.table:data.table-class]{data.table::data.table}.
+Grouping by columns of a \link[data.table:data.table]{data.table::data.table}.
 }
 \details{
 Everything in \code{...} will be wrapped in a call to \code{list}.

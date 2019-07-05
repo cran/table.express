@@ -14,17 +14,17 @@
 #' @importFrom rlang zap
 #'
 #' @template data-arg
-#' @template transform-sd-args
 #' @param .SDcols See [data.table::data.table] and the details here.
+#' @param .how The filtering function or predicate.
+#' @param ... Possibly more arguments for `.how`.
 #' @param .collapse See [where-table.express].
 #' @template parse-arg
 #' @template chain-arg
 #'
 #' @details
 #'
-#' This function adds/chains a `where` expression that will be evaluated by
-#' [data.table::data.table]. The `.how` condition is applied to all specified `.SDcols`, and it
-#' supports the `.COL` pronoun.
+#' This function adds/chains an `i` expression that will be evaluated by [data.table::data.table],
+#' and it supports the `.COL` pronoun. The `.how` condition is applied to all `.SDcols`.
 #'
 #' @template tidyselect-sdcols
 #' @template docu-examples
@@ -35,9 +35,9 @@
 #'
 #' data.table::as.data.table(mtcars) %>%
 #'     start_expr %>%
-#'     filter_sd(.COL == 1, .SDcols = c("vs", "am"))
+#'     filter_sd(c("vs", "am"), .COL == 1)
 #'
-filter_sd <- function(.data, .how = Negate(is.na), ..., .SDcols, .collapse = `&`,
+filter_sd <- function(.data, .SDcols, .how = Negate(is.na), ..., .collapse = `&`,
                       .parse = getOption("table.express.parse", FALSE),
                       .chain = getOption("table.express.chain", TRUE))
 {

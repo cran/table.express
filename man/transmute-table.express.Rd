@@ -3,7 +3,7 @@
 \name{transmute-table.express}
 \alias{transmute-table.express}
 \alias{transmute.ExprBuilder}
-\title{Alias for select}
+\title{Compute new columns}
 \usage{
 \method{transmute}{ExprBuilder}(.data, ...,
   .parse = getOption("table.express.parse", FALSE),
@@ -12,7 +12,7 @@
 \arguments{
 \item{.data}{An instance of \link{ExprBuilder}.}
 
-\item{...}{Clause for selecting/computing on columns. The \code{j} inside the \code{data.table}'s frame.}
+\item{...}{Clauses for transmuting columns. For \code{j} inside the \code{data.table}'s frame.}
 
 \item{.parse}{Logical. Whether to apply \code{\link[rlang:parse_expr]{rlang::parse_expr()}} to obtain the expressions.}
 
@@ -20,13 +20,10 @@
 clause being set already exists?}
 }
 \description{
-Because of the way \code{data.table} and the \link{select-table.express} method work, a
-\code{\link[dplyr:transmute]{dplyr::transmute()}} equivalent can be specified as a \code{select} clause.
+Compute and keep only new columns.
 }
 \details{
-If \code{length(...) == 1L} and the expression is a call to \code{:} (e.g. \code{a:c}), a numeric, or a call to
-\link[tidyselect:select_helpers]{tidyselect::select_helpers}, then it will be taken as the single expression for the select
-clause, otherwise everything in \code{...} will be wrapped in a call to \code{\link[base:list]{base::list()}}.
+Everything in \code{...} is wrapped in a call to \code{list}.
 
 To see more examples, check the
 \href{https://asardaes.github.io/table.express/articles/table.express.html}{vignette}, or the

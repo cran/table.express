@@ -4,18 +4,20 @@
 \alias{transmute_sd}
 \title{Transmute subset of data}
 \usage{
-transmute_sd(.data, .how = identity, ..., .SDcols = everything(),
+transmute_sd(.data, .SDcols = everything(), .how = identity, ...,
   .parse = getOption("table.express.parse", FALSE),
   .chain = getOption("table.express.chain", TRUE))
 }
 \arguments{
 \item{.data}{An instance of \link{ExprBuilder}.}
 
-\item{.how}{The function or function call that will perform the transformation.}
-
-\item{...}{Possibly more arguments for \code{.how}.}
-
 \item{.SDcols}{See \link[data.table:data.table]{data.table::data.table} and the details here.}
+
+\item{.how}{The function(s) or function call(s) that will perform the transformation. If many,
+a list should be used, either with \code{list()} or \code{.()}. If the list is named, the names will be
+used for the new columns' names.}
+
+\item{...}{Possibly more arguments for \emph{all} functions/calls in \code{.how}.}
 
 \item{.parse}{Logical. Whether to apply \code{\link[rlang:parse_expr]{rlang::parse_expr()}} to obtain the expressions.}
 
@@ -32,15 +34,15 @@ possibly specifying the helper function \code{.transmute_matching}, which is ass
 expression's evaluation environment when calling \code{\link[=end_expr]{end_expr()}} (i.e., \link{ExprBuilder}'s \code{eval}
 method).
 
-Said function includes two pronouns that can be used by \code{.how} and \code{.SDcols}:
+Said function supports two pronouns that can be used by \code{.how} and \code{.SDcols}:
 \itemize{
 \item \code{.COL}: the actual values of the column.
 \item \code{.COLNAME}: the name of the column currently being evaluated.
 }
 
 Unlike a call like \code{DT[, (vars) := expr]}, \code{.SDcols} can be created dynamically with an
-expression that evaluates to something that would be used in place of \code{vars} \emph{without} using the
-captured \code{data.table}. See the examples here or in \link{table.express-package}.
+expression that evaluates to something that would be used in place of \code{vars} \emph{without} eagerly
+using the captured \code{data.table}. See the examples here or in \link{table.express-package}.
 }
 \examples{
 
@@ -48,6 +50,10 @@ data("mtcars")
 
 data.table::as.data.table(mtcars) \%>\%
     start_expr \%>\%
-    transmute_sd(.COL * 2, .SDcols = grepl("^d", .COLNAME))
+    transmute_sd(grepl("^d", .COLNAME), .COL * 2)
+
+data.table::as.data.table(mtcars) \%>\%
+    start_expr \%>\%
+    transmute_sd(is.numeric(.COL), .COL * 2)
 
 }

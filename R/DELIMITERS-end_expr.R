@@ -1,6 +1,6 @@
 #' End and evaluate expression
 #'
-#' Finish the expression building process and evaluate it.
+#' Finish the expression-building process and evaluate it.
 #'
 #' @export
 #'
@@ -14,10 +14,11 @@ end_expr <- function(.data, ...) {
 #' @rdname end_expr
 #' @export
 #' @importFrom rlang caller_env
+#' @importFrom rlang is_missing
 #'
-#' @param .by_ref Whether to use [data.table::copy()] before evaluation.
+#' @param .by_ref If `FALSE`, [data.table::copy()] is used before evaluation.
 #' @param .parent_env Optionally, the *enclosing* environment of the expression's evaluation
-#'   environment.
+#'   environment. Defaults to the caller environment.
 #'
 #' @details
 #'
@@ -26,10 +27,11 @@ end_expr <- function(.data, ...) {
 #' @template docu-examples
 #'
 end_expr.ExprBuilder <- function(.data, ..., .by_ref = TRUE, .parent_env) {
-    if (missing(.parent_env)) {
+    if (rlang::is_missing(.parent_env)) {
         .data$eval(rlang::caller_env(), .by_ref)
     }
     else {
         .data$eval(.parent_env, .by_ref)
     }
 }
+

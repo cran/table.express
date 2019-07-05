@@ -22,8 +22,8 @@ test_that("Warning is given when replacing clauses", {
     b$set_where(expr, FALSE)
     expect_warning(b$set_where(expr, FALSE))
 
-    b$set_by(expr)
-    expect_warning(b$set_by(expr))
+    b$set_by(expr, FALSE)
+    expect_warning(b$set_by(expr, FALSE))
 })
 
 test_that("The expr field is read only.", {
@@ -33,6 +33,16 @@ test_that("The expr field is read only.", {
 
 test_that("Overriding values with eval's ellipsis works.", {
     b <- DT %>% start_expr %>% select(1L)
-    ans <- b$eval(rlang::current_env(), TRUE, .DT_ = NULL)
-    expect_null(ans)
+    ans <- b$eval(rlang::current_env(), TRUE, .DT_ = DT[, -1L])
+    expect_identical(ans, DT[, .(cyl)])
+})
+
+test_that("chain_if_set works.", {
+    b1 <- DT %>% start_expr
+    b2 <- b1$chain_if_set(".select")
+    expect_identical(b1, b2)
+
+    select(b1, 1L)
+    b2 <- b1$chain_if_set(".select")
+    expect_false(identical(b1, b2))
 })

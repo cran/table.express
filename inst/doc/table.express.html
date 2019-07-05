@@ -304,13 +304,15 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 
 <p>The goal of this package is to offer an alternative way of <strong>expressing</strong> common operations with <a href="https://cran.r-project.org/package=data.table"><code>data.table</code></a> without sacrificing the performance optimizations that it offers. The foundation for the data manipulation verbs is the <a href="https://cran.r-project.org/package=dplyr"><code>dplyr</code></a> package, which also advocates the piping operator from the <a href="https://cran.r-project.org/package=magrittr"><code>magrittr</code></a> package. The <a href="https://cran.r-project.org/package=rlang"><code>rlang</code></a> package powers most of this package’s functionality, which means that <a href="https://tidyeval.tidyverse.org/">tidy evaluation</a> can also be supported. There are other resources that provide comprehensive descriptions of these packages, so they will not be explained here.</p>
-<p>Even though using data manipulation verbs can improve expressiveness in some cases, this is not always true, so using the traditional <code>data.table</code> syntax might still be preferable in many situations.</p>
+<p>Even though using data manipulation verbs can improve expressiveness in some cases, this is not always true, so using the traditional <code>data.table</code> syntax might still be preferable in many situations. Unfortunately, it is not entirely straightforward to use the verbs without considerable knowledge of the syntax understood by <code>data.table</code>, as well as its <a href="https://rdrr.io/github/Rdatatable/data.table/man/datatable-optimize.html">optimizations</a> and <a href="https://rdrr.io/github/Rdatatable/data.table/man/special-symbols.html">special symbols</a>. We will return to the importance of this at the <a href="#as-simple-as-possible">end</a>.</p>
+<div id="preliminaries" class="section level3">
+<h3>Preliminaries</h3>
 <p>In order to resemble SQL syntax more closely, a couple of verb aliases are also defined:</p>
 <ul>
 <li><code>where</code>, being equivalent to <code>dplyr</code>’s <code>filter</code>.</li>
 <li><code>order_by</code>, being equivalent to <code>dplyr</code>’s <code>arrange</code>.</li>
 </ul>
-<p>The examples here will be working with the <code>mtcars</code> data:</p>
+<p>The examples here will be working with the <code>mtcars</code> data to describe single-table verbs:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">data</span>(<span class="st">&quot;mtcars&quot;</span>)</a>
 <a class="sourceLine" id="cb1-2" title="2"></a>
 <a class="sourceLine" id="cb1-3" title="3">DT &lt;-<span class="st"> </span>mtcars <span class="op">%&gt;%</span></a>
@@ -322,6 +324,8 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 #&gt; ---                                                   
 #&gt; 31: 15.0   8  301 335 3.54 3.570 14.60  0  1    5    8
 #&gt; 32: 21.4   4  121 109 4.11 2.780 18.60  1  1    4    2</code></pre>
+<p>Two-table joining verbs have <a href="https://asardaes.github.io/table.express/articles/joins.html">their own vignette</a>.</p>
+</div>
 <div id="expression-delimiters" class="section level2">
 <h2>Expression delimiters</h2>
 <p>The foundation for this package is building expressions that are almost entirely delegated to <code>data.table</code>. These expressions are built by <em>parsing</em> the input of the different verbs. In order to explicitly show when an expression is being built and subsequently evaluated, we use 3 delimiters:</p>
@@ -331,16 +335,23 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <li><code>chain</code></li>
 </ul>
 <p>These also serve as visual reminders that we are not dealing directly with <code>data.table</code>s during the process. We capture the input <code>data.table</code> and start the process with <code>start_expr</code>, and evaluate the final expression with <code>end_expr</code>. Using <code>chain</code> is equivalent to calling <code>end_expr</code> immediately followed by <code>start_expr</code>.</p>
+<div id="debugging" class="section level3">
+<h3>Debugging</h3>
+<p>In order to print more information regarding the expression-building process, we can either set <code>options(table.express.verbose = TRUE)</code>, or pass <code>.verbose = TRUE</code> to <code>start_expr</code> or <code>chain</code>.</p>
+</div>
 </div>
 <div id="arranging-rows" class="section level2">
 <h2>Arranging rows</h2>
 <p>The <code>arrange</code>/<code>order_by</code> verbs add an expression with <code>order</code> to the frame, and let <code>data.table</code> handle it as usual:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb3-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb3-3" title="3"><span class="st">  </span><span class="kw">order_by</span>(mpg, <span class="op">-</span>cyl) <span class="op">%T&gt;%</span></a>
-<a class="sourceLine" id="cb3-4" title="4"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb3-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
-<pre><code>#&gt; .DT_[order(mpg, -cyl)]</code></pre>
+<a class="sourceLine" id="cb3-2" title="2"><span class="st">  </span><span class="kw">start_expr</span>(<span class="dt">.verbose =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb3-3" title="3"><span class="st">  </span><span class="kw">order_by</span>(mpg, <span class="op">-</span>cyl) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb3-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
+<pre><code>#&gt; Expression after where.ExprBuilder(...):
+#&gt; .DT_[order(mpg, -cyl)]
+#&gt; Using captured data.table for evaluation.
+#&gt; Evaluating:
+#&gt; .DT_[order(mpg, -cyl)]</code></pre>
 <pre><code>#&gt;      mpg cyl  disp  hp drat    wt  qsec vs am gear carb
 #&gt;  1: 10.4   8 472.0 205 2.93 5.250 17.98  0  0    3    4
 #&gt;  2: 10.4   8 460.0 215 3.00 5.424 17.82  0  0    3    4
@@ -351,13 +362,15 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </div>
 <div id="selecting-columns" class="section level2">
 <h2>Selecting columns</h2>
-<p>Even though selecting a subset of columns is a common operation, it may be undesirable to do so when working with <code>data.table</code>s because they lead to data copies. Given that <code>data.table</code> supports modification by reference, these copies are necessary.</p>
+<p>Even though selecting a subset of columns is a common operation, it may be undesirable to do so when working with <code>data.table</code>s because they <em>always</em> lead to <strong>deep</strong> data copies. Given that <code>data.table</code> supports modification by reference, these copies are necessary. For example, the following would require copying all columns between <code>mpg</code> and <code>disp</code>, since any of them could be modified by reference afterwards.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1">DT[, mpg<span class="op">:</span>disp][, cyl <span class="op">:</span><span class="er">=</span><span class="st"> </span><span class="kw">as.integer</span>(cyl)]</a></code></pre></div>
+<p>Therefore, it might be preferable to use mutation verbs to remove columns that are not of interest.</p>
 <p>With that said, the <code>select</code> verb can be used as usual:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb6-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb6-3" title="3"><span class="st">  </span><span class="kw">select</span>(mpg, am) <span class="op">%T&gt;%</span></a>
-<a class="sourceLine" id="cb6-4" title="4"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb6-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb7-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb7-3" title="3"><span class="st">  </span><span class="kw">select</span>(mpg, am) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb7-4" title="4"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb7-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt; .DT_[, list(mpg, am)]</code></pre>
 <pre><code>#&gt;      mpg am
 #&gt;  1: 21.0  1
@@ -366,11 +379,11 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 #&gt; 31: 15.0  1
 #&gt; 32: 21.4  1</code></pre>
 <p>To maintain consistency, even single columns are kept as <code>data.table</code>s:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb9-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb9-3" title="3"><span class="st">  </span><span class="kw">select</span>(mpg) <span class="op">%T&gt;%</span></a>
-<a class="sourceLine" id="cb9-4" title="4"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb9-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb10-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb10-3" title="3"><span class="st">  </span><span class="kw">select</span>(mpg) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb10-4" title="4"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb10-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt; .DT_[, list(mpg)]</code></pre>
 <pre><code>#&gt;      mpg
 #&gt;  1: 21.0
@@ -378,21 +391,21 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 #&gt; ---     
 #&gt; 31: 15.0
 #&gt; 32: 21.4</code></pre>
-<p>In the case of single expressions in <code>select</code>, calls to <code>tidyselect</code>’s helpers or to <code>:</code> are handled specially internally:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb12-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb12-3" title="3"><span class="st">  </span><span class="kw">select</span>(mpg<span class="op">:</span>cyl) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb12-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
-<pre><code>#&gt;      mpg cyl
-#&gt;  1: 21.0   6
-#&gt;  2: 21.0   6
-#&gt; ---         
-#&gt; 31: 15.0   8
-#&gt; 32: 21.4   4</code></pre>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb14-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb14-3" title="3"><span class="st">  </span><span class="kw">select</span>(<span class="kw">contains</span>(<span class="st">&quot;M&quot;</span>, <span class="dt">ignore.case =</span> <span class="ot">TRUE</span>)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb14-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
+<p>Calls to <code>tidyselect</code>’s helpers or to <code>:</code> are handled specially internally:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb13-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb13-3" title="3"><span class="st">  </span><span class="kw">select</span>(mpg<span class="op">:</span>disp, gear<span class="op">:</span>carb) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb13-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
+<pre><code>#&gt;      mpg cyl disp gear carb
+#&gt;  1: 21.0   6  160    4    4
+#&gt;  2: 21.0   6  160    4    4
+#&gt; ---                        
+#&gt; 31: 15.0   8  301    5    8
+#&gt; 32: 21.4   4  121    4    2</code></pre>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb15-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb15-3" title="3"><span class="st">  </span><span class="kw">select</span>(<span class="kw">contains</span>(<span class="st">&quot;M&quot;</span>, <span class="dt">ignore.case =</span> <span class="ot">TRUE</span>)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb15-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt;      mpg am
 #&gt;  1: 21.0  1
 #&gt;  2: 21.0  1
@@ -400,11 +413,11 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 #&gt; 31: 15.0  1
 #&gt; 32: 21.4  1</code></pre>
 <p>Tidy evaluation and the <code>.parse</code> argument can also aid in cases where certain parts of the frame were computed programmatically:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" title="1">selected &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;am&quot;</span>)</a>
-<a class="sourceLine" id="cb16-2" title="2">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb16-3" title="3"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb16-4" title="4"><span class="st">  </span><span class="kw">select</span>(<span class="op">!!!</span>selected, <span class="dt">.parse =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb16-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1">selected &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;am&quot;</span>)</a>
+<a class="sourceLine" id="cb17-2" title="2">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb17-3" title="3"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb17-4" title="4"><span class="st">  </span><span class="kw">select</span>(<span class="op">!!!</span>selected, <span class="dt">.parse =</span> <span class="ot">TRUE</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb17-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt;      mpg am
 #&gt;  1: 21.0  1
 #&gt;  2: 21.0  1
@@ -414,27 +427,20 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </div>
 <div id="transmuting-columns" class="section level2">
 <h2>Transmuting columns</h2>
-<p>Given the way <code>data.table</code> handles the <code>j</code> part of the frame, creating and keeping only new columns (like with <code>dplyr</code>’s <code>transmute</code>) can be done with <code>select</code>, so <code>transmute</code> is simply an alias during expression building.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb18-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb18-3" title="3"><span class="st">  </span><span class="kw">select</span>(<span class="dt">foo =</span> mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">bar =</span> <span class="kw">exp</span>(cyl)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb18-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
+<p>The <code>transmute</code> verb simply wraps everything in its ellipsis in a call to <code>list</code> and assigns the expression to the frame’s <code>j</code>.</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb19-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb19-3" title="3"><span class="st">  </span><span class="kw">transmute</span>(<span class="dt">foo =</span> mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">bar =</span> <span class="kw">exp</span>(cyl)) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb19-4" title="4"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb19-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
+<pre><code>#&gt; .DT_[, list(foo = mpg * 2, bar = exp(cyl))]</code></pre>
 <pre><code>#&gt;      foo        bar
 #&gt;  1: 42.0  403.42879
 #&gt;  2: 42.0  403.42879
 #&gt; ---                
 #&gt; 31: 30.0 2980.95799
 #&gt; 32: 42.8   54.59815</code></pre>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb20-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb20-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb20-3" title="3"><span class="st">  </span><span class="kw">transmute</span>(<span class="dt">foo =</span> mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">bar =</span> <span class="kw">exp</span>(cyl)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb20-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
-<pre><code>#&gt;      foo        bar
-#&gt;  1: 42.0  403.42879
-#&gt;  2: 42.0  403.42879
-#&gt; ---                
-#&gt; 31: 30.0 2980.95799
-#&gt; 32: 42.8   54.59815</code></pre>
+<p>Even though <code>select</code> can be used for the same (given the way <code>data.table</code> handles <code>j</code>), the simplicity of <code>transmute</code>’s internals makes it preferable when no <code>tidyselect</code> helpers are needed, since it avoids extra function calls and can reduce overhead significantly in special circumstances.</p>
 </div>
 <div id="mutating-columns" class="section level2">
 <h2>Mutating columns</h2>
@@ -462,165 +468,252 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 #&gt; ---                                                   
 #&gt; 31: 15.0   8  301 335 3.54 3.570 14.60  0  1    5    8
 #&gt; 32: 21.4   4  121 109 4.11 2.780 18.60  1  1    4    2</code></pre>
+<p>It can also support expressions that already contain <code>:=</code>:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" title="1">new_vars &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;x&quot;</span>, <span class="st">&quot;y&quot;</span>)</a>
+<a class="sourceLine" id="cb28-2" title="2"></a>
+<a class="sourceLine" id="cb28-3" title="3">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb28-4" title="4"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb28-5" title="5"><span class="st">  </span><span class="kw">mutate</span>(<span class="op">!!</span><span class="dt">new_vars :=</span> .(<span class="dv">1</span>, <span class="dv">2</span>), <span class="dt">.unquote_names =</span> <span class="ot">FALSE</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb28-6" title="6"><span class="st">  </span><span class="kw">end_expr</span>(<span class="dt">.by_ref =</span> <span class="ot">FALSE</span>) <span class="op">%&gt;%</span><span class="st"> </span>{</a>
+<a class="sourceLine" id="cb28-7" title="7">    <span class="kw">invisible</span>(<span class="kw">print</span>(.))</a>
+<a class="sourceLine" id="cb28-8" title="8">  }</a></code></pre></div>
+<pre><code>#&gt;      mpg cyl disp  hp drat    wt  qsec vs am gear carb x y
+#&gt;  1: 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4 1 2
+#&gt;  2: 21.0   6  160 110 3.90 2.875 17.02  0  1    4    4 1 2
+#&gt; ---                                                       
+#&gt; 31: 15.0   8  301 335 3.54 3.570 14.60  0  1    5    8 1 2
+#&gt; 32: 21.4   4  121 109 4.11 2.780 18.60  1  1    4    2 1 2</code></pre>
 </div>
 <div id="filtering-rows" class="section level2">
 <h2>Filtering rows</h2>
 <p>The <code>where</code>/<code>filter</code> verbs work with the <code>i</code> part of the frame:</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb28-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb28-3" title="3"><span class="st">  </span><span class="kw">filter</span>(vs <span class="op">==</span><span class="st"> </span>1L, carb <span class="op">&gt;</span><span class="st"> </span>2L) <span class="op">%T&gt;%</span></a>
-<a class="sourceLine" id="cb28-4" title="4"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb28-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb30-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb30-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb30-3" title="3"><span class="st">  </span><span class="kw">filter</span>(vs <span class="op">==</span><span class="st"> </span>1L, carb <span class="op">&gt;</span><span class="st"> </span>2L) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb30-4" title="4"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb30-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt; .DT_[vs == 1L &amp; carb &gt; 2L]</code></pre>
 <pre><code>#&gt;     mpg cyl  disp  hp drat   wt qsec vs am gear carb
 #&gt; 1: 19.2   6 167.6 123 3.92 3.44 18.3  1  0    4    4
 #&gt; 2: 17.8   6 167.6 123 3.92 3.44 18.9  1  0    4    4</code></pre>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb31-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb31-3" title="3"><span class="st">  </span><span class="kw">select</span>(<span class="dt">mean_mpg =</span> <span class="kw">mean</span>(mpg)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb31-4" title="4"><span class="st">  </span><span class="kw">where</span>(vs <span class="op">==</span><span class="st"> </span>1L, carb <span class="op">&gt;</span><span class="st"> </span>2L, <span class="dt">.collapse =</span> <span class="st">`</span><span class="dt">|</span><span class="st">`</span>) <span class="op">%T&gt;%</span></a>
-<a class="sourceLine" id="cb31-5" title="5"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb31-6" title="6"><span class="st">  </span>end_expr</a></code></pre></div>
-<pre><code>#&gt; .DT_[vs == 1L | carb &gt; 2L, list(mean_mpg = mean(mpg))]</code></pre>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb33-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb33-3" title="3"><span class="st">  </span><span class="kw">select</span>(<span class="dt">mean_mpg =</span> <span class="kw">mean</span>(mpg)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb33-4" title="4"><span class="st">  </span><span class="kw">where</span>(vs <span class="op">==</span><span class="st"> </span>1L, carb <span class="op">&gt;</span><span class="st"> </span>2L, <span class="dt">.collapse =</span> <span class="st">`</span><span class="dt">|</span><span class="st">`</span>) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb33-5" title="5"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb33-6" title="6"><span class="st">  </span>end_expr</a></code></pre></div>
+<pre><code>#&gt; .DT_[vs == 1L | carb &gt; 2L, .select_matching(.SD, mean_mpg = mean(mpg), 
+#&gt;     .negate = FALSE)]</code></pre>
 <pre><code>#&gt;    mean_mpg
 #&gt; 1: 20.30741</code></pre>
 <p>The helper verb <code>filter_sd</code> can be used to apply the same conditions to many columns, and it can use a special pronoun <code>.COL</code> while specifying the expression, as well as <code>tidyselect</code> helpers to choose <code>.SDcols</code> (with caveats, see <a href="#eager-verbs">eager verbs</a>):</p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb34-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb34-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb34-3" title="3"><span class="st">  </span><span class="kw">filter_sd</span>(<span class="st">`</span><span class="dt">&gt;</span><span class="st">`</span>, <span class="dv">20</span>, <span class="dt">.SDcols =</span> <span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;qsec&quot;</span>)) <span class="op">%T&gt;%</span></a>
-<a class="sourceLine" id="cb34-4" title="4"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb34-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb36-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb36-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb36-3" title="3"><span class="st">  </span><span class="kw">filter_sd</span>(<span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;qsec&quot;</span>), <span class="st">`</span><span class="dt">&gt;</span><span class="st">`</span>, <span class="dv">20</span>) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb36-4" title="4"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb36-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt; .DT_[mpg &gt; 20 &amp; qsec &gt; 20]</code></pre>
-<pre><code>#&gt;     mpg cyl  disp hp drat    wt  qsec vs am gear carb
-#&gt; 1: 22.8   4 140.8 95 3.92 3.150 22.90  1  0    4    2
-#&gt; 2: 21.5   4 120.1 97 3.70 2.465 20.01  1  0    3    1</code></pre>
-<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb37-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb37-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb37-3" title="3"><span class="st">  </span><span class="kw">filter_sd</span>(.COL <span class="op">&gt;</span><span class="st"> </span><span class="dv">20</span>, <span class="dt">.SDcols =</span> <span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;qsec&quot;</span>)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb37-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt;     mpg cyl  disp hp drat    wt  qsec vs am gear carb
 #&gt; 1: 22.8   4 140.8 95 3.92 3.150 22.90  1  0    4    2
 #&gt; 2: 21.5   4 120.1 97 3.70 2.465 20.01  1  0    3    1</code></pre>
 <div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb39-1" title="1">DT <span class="op">%&gt;%</span></a>
 <a class="sourceLine" id="cb39-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb39-3" title="3"><span class="st">  </span><span class="kw">filter_sd</span>(.COL <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>, <span class="dt">.SDcols =</span> <span class="kw">contains</span>(<span class="st">&quot;m&quot;</span>))</a></code></pre></div>
+<a class="sourceLine" id="cb39-3" title="3"><span class="st">  </span><span class="kw">filter_sd</span>(<span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;qsec&quot;</span>), .COL <span class="op">&gt;</span><span class="st"> </span><span class="dv">20</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb39-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
+<pre><code>#&gt;     mpg cyl  disp hp drat    wt  qsec vs am gear carb
+#&gt; 1: 22.8   4 140.8 95 3.92 3.150 22.90  1  0    4    2
+#&gt; 2: 21.5   4 120.1 97 3.70 2.465 20.01  1  0    3    1</code></pre>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb41-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb41-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb41-3" title="3"><span class="st">  </span><span class="kw">filter_sd</span>(<span class="kw">contains</span>(<span class="st">&quot;m&quot;</span>), .COL <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</a></code></pre></div>
 <pre><code>#&gt; .DT_[mpg &gt; 0 &amp; am &gt; 0]</code></pre>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb43-1" title="1"><span class="co"># like dplyr&#39;s filter_if</span></a>
+<a class="sourceLine" id="cb43-2" title="2">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb43-3" title="3"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb43-4" title="4"><span class="st">  </span><span class="kw">filter_sd</span>(<span class="kw">is.numeric</span>(.COL), .COL <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</a></code></pre></div>
+<pre><code>#&gt; .DT_[mpg &gt; 0 &amp; cyl &gt; 0 &amp; disp &gt; 0 &amp; hp &gt; 0 &amp; drat &gt; 0 &amp; wt &gt; 
+#&gt;     0 &amp; qsec &gt; 0 &amp; vs &gt; 0 &amp; am &gt; 0 &amp; gear &gt; 0 &amp; carb &gt; 0]</code></pre>
 <div id="using-keys-or-secondary-indices" class="section level3">
 <h3>Using keys or secondary indices</h3>
 <p>The <code>filter_on</code> verb can be used to build an expression that specifies the <code>on</code> argument of the frame. It accepts key-value pairs where each key is a column in the data, and each value is the corresponding value that the column should have to match:</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb41-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb41-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb41-3" title="3"><span class="st">  </span><span class="kw">filter_on</span>(<span class="dt">cyl =</span> <span class="dv">6</span>, <span class="dt">am =</span> <span class="dv">0</span>) <span class="op">%T&gt;%</span></a>
-<a class="sourceLine" id="cb41-4" title="4"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb41-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb45-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb45-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb45-3" title="3"><span class="st">  </span><span class="kw">filter_on</span>(<span class="dt">cyl =</span> <span class="dv">6</span>, <span class="dt">am =</span> <span class="dv">0</span>) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb45-4" title="4"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb45-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt; .DT_[list(6, 0), on = c(&quot;cyl&quot;, &quot;am&quot;)]</code></pre>
 <pre><code>#&gt;     mpg cyl  disp  hp drat    wt  qsec vs am gear carb
 #&gt; 1: 21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1
 #&gt; 2: 18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1
 #&gt; 3: 19.2   6 167.6 123 3.92 3.440 18.30  1  0    4    4
 #&gt; 4: 17.8   6 167.6 123 3.92 3.440 18.90  1  0    4    4</code></pre>
-<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb44-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb44-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb44-3" title="3"><span class="st">  </span><span class="kw">filter_on</span>(<span class="dt">cyl =</span> <span class="dv">6</span>, <span class="dt">am =</span> <span class="dv">0</span>, <span class="dt">mult =</span> <span class="st">&quot;first&quot;</span>) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb44-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb48-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb48-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb48-3" title="3"><span class="st">  </span><span class="kw">filter_on</span>(<span class="dt">cyl =</span> <span class="dv">6</span>, <span class="dt">am =</span> <span class="dv">0</span>, <span class="dt">mult =</span> <span class="st">&quot;first&quot;</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb48-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt;     mpg cyl disp  hp drat    wt  qsec vs am gear carb
 #&gt; 1: 21.4   6  258 110 3.08 3.215 19.44  1  0    3    1</code></pre>
 </div>
 </div>
 <div id="modifying-subset-of-data" class="section level2">
 <h2>Modifying subset of data</h2>
-<p>In order to support functionality similar to <code>data.table</code>’s <code>DT[, lapply(.SD, fun), .SDcols = c(&quot;...&quot;)]</code> syntax, 2 <code>data.table</code>-specific verbs are provided: <code>mutate_sd</code> and <code>transmute_sd</code>.</p>
+<p>In order to support functionality similar to <code>data.table</code>’s <code>DT[, lapply(.SD, fun), .SDcols = c(&quot;...&quot;)]</code> syntax, 2 verbs are provided: <code>mutate_sd</code> and <code>transmute_sd</code>.</p>
 <p>Starting with <code>mutate_sd</code>, it modifies columns in <code>.SDcols</code> by reference, and columns that are not part of <code>.SDcols</code> are kept:</p>
-<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb46-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb46-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb46-3" title="3"><span class="st">  </span><span class="kw">mutate_sd</span>(exp, <span class="dt">.SDcols =</span> <span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;cyl&quot;</span>)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb46-4" title="4"><span class="st">  </span>end_expr</a>
-<a class="sourceLine" id="cb46-5" title="5"></a>
-<a class="sourceLine" id="cb46-6" title="6"><span class="kw">print</span>(DT)</a></code></pre></div>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb50-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb50-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb50-3" title="3"><span class="st">  </span><span class="kw">mutate_sd</span>(<span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;cyl&quot;</span>), exp) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb50-4" title="4"><span class="st">  </span>end_expr</a>
+<a class="sourceLine" id="cb50-5" title="5"></a>
+<a class="sourceLine" id="cb50-6" title="6"><span class="kw">print</span>(DT)</a></code></pre></div>
 <pre><code>#&gt;            mpg        cyl disp  hp drat    wt  qsec vs am gear carb
 #&gt;  1: 1318815734  403.42879  160 110 3.90 2.620 16.46  0  1    4    4
 #&gt;  2: 1318815734  403.42879  160 110 3.90 2.875 17.02  0  1    4    4
 #&gt; ---                                                                
 #&gt; 31:    3269017 2980.95799  301 335 3.54 3.570 14.60  0  1    5    8
 #&gt; 32: 1967441884   54.59815  121 109 4.11 2.780 18.60  1  1    4    2</code></pre>
-<p>Additionally, <code>mutate_sd</code> supports the special <code>.COL</code> pronoun that symbolizes the column that should be modified, and can be used to express the mutation expression:</p>
-<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb48-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb48-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb48-3" title="3"><span class="st">  </span><span class="kw">mutate_sd</span>(<span class="kw">log</span>(.COL), <span class="dt">.SDcols =</span> <span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;cyl&quot;</span>)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb48-4" title="4"><span class="st">  </span>end_expr</a>
-<a class="sourceLine" id="cb48-5" title="5"></a>
-<a class="sourceLine" id="cb48-6" title="6"><span class="kw">print</span>(DT)</a></code></pre></div>
+<p>It would also be possible to remove several columns with <code>mutate_sd</code>:</p>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb52-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb52-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb52-3" title="3"><span class="st">  </span><span class="kw">mutate_sd</span>(<span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;cyl&quot;</span>), <span class="ot">NULL</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb52-4" title="4"><span class="st">  </span><span class="kw">end_expr</span>(<span class="dt">.by_ref =</span> <span class="ot">FALSE</span>) <span class="op">%&gt;%</span><span class="st"> </span>{</a>
+<a class="sourceLine" id="cb52-5" title="5">    <span class="kw">invisible</span>(<span class="kw">print</span>(.))</a>
+<a class="sourceLine" id="cb52-6" title="6">  }</a></code></pre></div>
+<pre><code>#&gt;     disp  hp drat    wt  qsec vs am gear carb
+#&gt;  1:  160 110 3.90 2.620 16.46  0  1    4    4
+#&gt;  2:  160 110 3.90 2.875 17.02  0  1    4    4
+#&gt; ---                                          
+#&gt; 31:  301 335 3.54 3.570 14.60  0  1    5    8
+#&gt; 32:  121 109 4.11 2.780 18.60  1  1    4    2</code></pre>
+<p>Additionally, <code>mutate_sd</code> supports the special <code>.COL</code> pronoun that symbolizes the column that should be modified:</p>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb54-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb54-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb54-3" title="3"><span class="st">  </span><span class="kw">mutate_sd</span>(<span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;cyl&quot;</span>), <span class="kw">log</span>(.COL)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb54-4" title="4"><span class="st">  </span>end_expr</a>
+<a class="sourceLine" id="cb54-5" title="5"></a>
+<a class="sourceLine" id="cb54-6" title="6"><span class="kw">print</span>(DT)</a></code></pre></div>
 <pre><code>#&gt;      mpg cyl disp  hp drat    wt  qsec vs am gear carb
 #&gt;  1: 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4
 #&gt;  2: 21.0   6  160 110 3.90 2.875 17.02  0  1    4    4
 #&gt; ---                                                   
 #&gt; 31: 15.0   8  301 335 3.54 3.570 14.60  0  1    5    8
 #&gt; 32: 21.4   4  121 109 4.11 2.780 18.60  1  1    4    2</code></pre>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb56-1" title="1"><span class="co"># like dplyr&#39;s mutate_if</span></a>
+<a class="sourceLine" id="cb56-2" title="2">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb56-3" title="3"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb56-4" title="4"><span class="st">  </span><span class="kw">mutate_sd</span>(<span class="kw">all</span>(.COL <span class="op">%%</span><span class="st"> </span><span class="dv">1</span> <span class="op">==</span><span class="st"> </span><span class="dv">0</span>), <span class="kw">as.integer</span>(.COL))</a></code></pre></div>
+<pre><code>#&gt; .DT_[, `:=`(c(&quot;cyl&quot;, &quot;hp&quot;, &quot;vs&quot;, &quot;am&quot;, &quot;gear&quot;, &quot;carb&quot;), .mutate_matching(.SD, 
+#&gt;     c(&quot;cyl&quot;, &quot;hp&quot;, &quot;vs&quot;, &quot;am&quot;, &quot;gear&quot;, &quot;carb&quot;), rlang::quos(as.integer(.COL))))]</code></pre>
 <p>On the other hand, <code>transmute_sd</code> never modifies by reference, and supports special expressions to “build” what is chosen as <code>.SDcols</code>. These expressions can use <code>tidyselect</code> helpers, as well as another special pronoun: <code>.COLNAME</code>:</p>
-<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb50-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb50-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb50-3" title="3"><span class="st">  </span><span class="kw">transmute_sd</span>(.COL <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">.SDcols =</span> <span class="kw">starts_with</span>(<span class="st">&quot;d&quot;</span>)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb50-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb58-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb58-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb58-3" title="3"><span class="st">  </span><span class="kw">transmute_sd</span>(<span class="kw">starts_with</span>(<span class="st">&quot;d&quot;</span>), .COL <span class="op">*</span><span class="st"> </span><span class="dv">2</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb58-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt;     disp drat
 #&gt;  1:  320 7.80
 #&gt;  2:  320 7.80
 #&gt; ---          
 #&gt; 31:  602 7.08
 #&gt; 32:  242 8.22</code></pre>
-<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb52-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb52-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb52-3" title="3"><span class="st">  </span><span class="kw">transmute_sd</span>(.COL <span class="op">*</span><span class="st"> </span><span class="dv">2</span>, <span class="dt">.SDcols =</span> <span class="kw">grepl</span>(<span class="st">&quot;^d&quot;</span>, .COLNAME)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb52-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
+<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb60-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb60-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb60-3" title="3"><span class="st">  </span><span class="kw">transmute_sd</span>(<span class="kw">grepl</span>(<span class="st">&quot;^d&quot;</span>, .COLNAME), .COL <span class="op">*</span><span class="st"> </span><span class="dv">2</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb60-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt;     disp drat
 #&gt;  1:  320 7.80
 #&gt;  2:  320 7.80
 #&gt; ---          
 #&gt; 31:  602 7.08
 #&gt; 32:  242 8.22</code></pre>
+<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb62-1" title="1"><span class="co"># like dplyr&#39;s transmute_if</span></a>
+<a class="sourceLine" id="cb62-2" title="2">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb62-3" title="3"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb62-4" title="4"><span class="st">  </span><span class="kw">transmute_sd</span>(<span class="kw">is.numeric</span>(.COL), .COL <span class="op">*</span><span class="st"> </span><span class="dv">2</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb62-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
+<pre><code>#&gt;      mpg cyl disp  hp drat   wt  qsec vs am gear carb
+#&gt;  1: 42.0  12  320 220 7.80 5.24 32.92  0  2    8    8
+#&gt;  2: 42.0  12  320 220 7.80 5.75 34.04  0  2    8    8
+#&gt; ---                                                  
+#&gt; 31: 30.0  16  602 670 7.08 7.14 29.20  0  2   10   16
+#&gt; 32: 42.8   8  242 218 8.22 5.56 37.20  2  2    8    4</code></pre>
+<p>Both verbs also support a list of functions for multiple transformations, but <code>mutate_sd</code> performs pairwise transformations, whereas <code>transmute_sd</code> performs all combinations:</p>
+<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb64-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb64-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb64-3" title="3"><span class="st">  </span><span class="kw">mutate_sd</span>(<span class="kw">contains</span>(<span class="st">&quot;m&quot;</span>), .(round, <span class="op">-</span>1L)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb64-4" title="4"><span class="st">  </span><span class="kw">end_expr</span>(<span class="dt">.by_ref =</span> <span class="ot">FALSE</span>) <span class="op">%&gt;%</span><span class="st"> </span>{</a>
+<a class="sourceLine" id="cb64-5" title="5">    <span class="kw">invisible</span>(<span class="kw">print</span>(.))</a>
+<a class="sourceLine" id="cb64-6" title="6">  }</a></code></pre></div>
+<pre><code>#&gt;     mpg cyl disp  hp drat    wt  qsec vs am gear carb
+#&gt;  1:  21   6  160 110 3.90 2.620 16.46  0 -1    4    4
+#&gt;  2:  21   6  160 110 3.90 2.875 17.02  0 -1    4    4
+#&gt; ---                                                  
+#&gt; 31:  15   8  301 335 3.54 3.570 14.60  0 -1    5    8
+#&gt; 32:  21   4  121 109 4.11 2.780 18.60  1 -1    4    2</code></pre>
+<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb66-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb66-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb66-3" title="3"><span class="st">  </span><span class="kw">transmute_sd</span>(<span class="kw">contains</span>(<span class="st">&quot;m&quot;</span>), .(min, max, mean)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb66-4" title="4"><span class="st">  </span>end_expr</a></code></pre></div>
+<pre><code>#&gt;    min.mpg min.am max.mpg max.am mean.mpg mean.am
+#&gt; 1:    10.4      0    33.9      1 20.09062 0.40625</code></pre>
 </div>
 <div id="data-manipulation-by-group" class="section level2">
 <h2>Data manipulation by group</h2>
 <p>Since <code>data.table</code> already supports this by means of its <code>by</code> parameter, the <code>group_by</code> verb simply parses its input and assigns it accordingly:</p>
-<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb54-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb54-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb54-3" title="3"><span class="st">  </span><span class="kw">select</span>(.N) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb54-4" title="4"><span class="st">  </span><span class="kw">group_by</span>(gear) <span class="op">%T&gt;%</span></a>
-<a class="sourceLine" id="cb54-5" title="5"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb54-6" title="6"><span class="st">  </span>end_expr</a></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb68-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb68-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb68-3" title="3"><span class="st">  </span><span class="kw">select</span>(.N) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb68-4" title="4"><span class="st">  </span><span class="kw">group_by</span>(gear) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb68-5" title="5"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb68-6" title="6"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt; .DT_[, list(.N), by = list(gear)]</code></pre>
 <pre><code>#&gt;    gear  N
 #&gt; 1:    4 12
 #&gt; 2:    3 15
 #&gt; 3:    5  5</code></pre>
 <p>The <code>key_by</code> verb does the same but sets the key of the result in order to sort:</p>
-<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb57-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb57-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb57-3" title="3"><span class="st">  </span><span class="kw">select</span>(.N) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb57-4" title="4"><span class="st">  </span><span class="kw">key_by</span>(gear) <span class="op">%T&gt;%</span></a>
-<a class="sourceLine" id="cb57-5" title="5"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb57-6" title="6"><span class="st">  </span>end_expr</a></code></pre></div>
+<div class="sourceCode" id="cb71"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb71-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb71-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb71-3" title="3"><span class="st">  </span><span class="kw">select</span>(.N) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb71-4" title="4"><span class="st">  </span><span class="kw">key_by</span>(gear) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb71-5" title="5"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb71-6" title="6"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt; .DT_[, list(.N), keyby = list(gear)]</code></pre>
 <pre><code>#&gt;    gear  N
 #&gt; 1:    3 15
 #&gt; 2:    4 12
 #&gt; 3:    5  5</code></pre>
 </div>
+<div id="distinct-combinations-of-columns" class="section level2">
+<h2>Distinct combinations of columns</h2>
+<p>The <code>distinct</code> verb is a shortcut for <code>select(.SD[1])</code> with a <code>by</code> clause:</p>
+<div class="sourceCode" id="cb74"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb74-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb74-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb74-3" title="3"><span class="st">  </span><span class="kw">distinct</span>(vs, am) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb74-4" title="4"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb74-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
+<pre><code>#&gt; .DT_[, .SD[1L], by = list(vs, am)]</code></pre>
+<pre><code>#&gt;    vs am  mpg cyl disp  hp drat    wt  qsec gear carb
+#&gt; 1:  0  1 21.0   6  160 110 3.90 2.620 16.46    4    4
+#&gt; 2:  1  1 22.8   4  108  93 3.85 2.320 18.61    4    1
+#&gt; 3:  1  0 21.4   6  258 110 3.08 3.215 19.44    3    1
+#&gt; 4:  0  0 18.7   8  360 175 3.15 3.440 17.02    3    2</code></pre>
+</div>
 <div id="automatic-expression-chaining" class="section level2">
 <h2>Automatic expression chaining</h2>
 <p>A <code>data.table</code>’s frame has 3 main elements: <a href="https://github.com/Rdatatable/data.table/wiki"><code>i</code>, <code>j</code>, and <code>by</code></a>. By default, the verbs defined in this package automatically start a new frame whenever they want to define one of these elements, but the current expression’s frame has already specified it; otherwise they add to the current frame. More complex expressions are thus supported by automatically chaining <code>data.table</code> frames:</p>
-<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb60-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb60-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb60-3" title="3"><span class="st">  </span><span class="kw">select</span>(<span class="dt">mean_mpg =</span> <span class="kw">mean</span>(mpg)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb60-4" title="4"><span class="st">  </span><span class="kw">where</span>(hp <span class="op">&gt;</span><span class="st"> </span>50L) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb60-5" title="5"><span class="st">  </span><span class="kw">group_by</span>(vs, am, gear) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb60-6" title="6"><span class="st">  </span><span class="kw">order_by</span>(gear, <span class="op">-</span>vs, am) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb60-7" title="7"><span class="st">  </span><span class="kw">filter</span>(mean_mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">20</span>) <span class="op">%T&gt;%</span></a>
-<a class="sourceLine" id="cb60-8" title="8"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb60-9" title="9"><span class="st">  </span>end_expr <span class="op">%&gt;%</span><span class="st"> </span>{</a>
-<a class="sourceLine" id="cb60-10" title="10">    <span class="kw">invisible</span>(<span class="kw">print</span>(., <span class="dt">nrows =</span> 10L))</a>
-<a class="sourceLine" id="cb60-11" title="11">  }</a></code></pre></div>
-<pre><code>#&gt; .DT_[hp &gt; 50L, list(mean_mpg = mean(mpg)), by = list(vs, am, 
-#&gt;     gear)][order(gear, -vs, am)][mean_mpg &gt; 20]
+<div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb77-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb77-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb77-3" title="3"><span class="st">  </span><span class="kw">select</span>(<span class="dt">mean_mpg =</span> <span class="kw">mean</span>(mpg)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb77-4" title="4"><span class="st">  </span><span class="kw">where</span>(hp <span class="op">&gt;</span><span class="st"> </span>50L) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb77-5" title="5"><span class="st">  </span><span class="kw">group_by</span>(vs, am, gear) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb77-6" title="6"><span class="st">  </span><span class="kw">order_by</span>(gear, <span class="op">-</span>vs, am) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb77-7" title="7"><span class="st">  </span><span class="kw">filter</span>(mean_mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">20</span>) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb77-8" title="8"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb77-9" title="9"><span class="st">  </span>end_expr <span class="op">%&gt;%</span><span class="st"> </span>{</a>
+<a class="sourceLine" id="cb77-10" title="10">    <span class="kw">invisible</span>(<span class="kw">print</span>(., <span class="dt">nrows =</span> 10L))</a>
+<a class="sourceLine" id="cb77-11" title="11">  }</a></code></pre></div>
+<pre><code>#&gt; .DT_[hp &gt; 50L, .select_matching(.SD, mean_mpg = mean(mpg), .negate = FALSE), 
+#&gt;     by = list(vs, am, gear)][order(gear, -vs, am)][mean_mpg &gt; 
+#&gt;     20]
 #&gt;    vs am gear mean_mpg
 #&gt; 1:  1  0    3 20.33333
 #&gt; 2:  1  0    4 21.05000
@@ -642,15 +735,18 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </ul></li>
 <li>Verbs that set <code>j</code>:
 <ul>
+<li><code>select</code></li>
 <li><code>mutate</code></li>
 <li><code>mutate_sd</code></li>
 <li><code>transmute</code></li>
 <li><code>transmute_sd</code></li>
+<li><code>distinct</code></li>
 </ul></li>
 <li>Verbs for grouping:
 <ul>
 <li><code>group_by</code> to specify <code>by</code></li>
 <li><code>key_by</code> to specify <code>keyby</code></li>
+<li><code>distinct</code></li>
 </ul></li>
 </ul>
 </div>
@@ -658,35 +754,35 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div id="explicit-chaining" class="section level2">
 <h2>Explicit chaining</h2>
 <p>The automatic chaining mentioned above is not a problem in most situations. For example the following chains lead to the same result, and therefore have the same semantics:</p>
-<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb62-1" title="1">DT[mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">20</span>, mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>]</a></code></pre></div>
+<div class="sourceCode" id="cb79"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb79-1" title="1">DT[mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">20</span>, mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>]</a></code></pre></div>
 <pre><code>#&gt;  [1] 42.0 42.0 45.6 42.8 48.8 45.6 64.8 60.8 67.8 43.0 54.6 52.0 60.8 42.8</code></pre>
-<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb64-1" title="1">DT[mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">20</span>][, mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>]</a></code></pre></div>
+<div class="sourceCode" id="cb81"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb81-1" title="1">DT[mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">20</span>][, mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>]</a></code></pre></div>
 <pre><code>#&gt;  [1] 42.0 42.0 45.6 42.8 48.8 45.6 64.8 60.8 67.8 43.0 54.6 52.0 60.8 42.8</code></pre>
 <p>However, these two chains have different semantics:</p>
-<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb66-1" title="1">DT[, .(<span class="dt">mpg =</span> mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>)][mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">40</span>]</a></code></pre></div>
+<div class="sourceCode" id="cb83"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb83-1" title="1">DT[, .(<span class="dt">mpg =</span> mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>)][mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">40</span>]</a></code></pre></div>
 <pre><code>#&gt;      mpg
 #&gt;  1: 42.0
 #&gt;  2: 42.0
 #&gt; ---     
 #&gt; 13: 60.8
 #&gt; 14: 42.8</code></pre>
-<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb68-1" title="1">DT[mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">40</span>, .(<span class="dt">mpg =</span> mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>)]</a></code></pre></div>
+<div class="sourceCode" id="cb85"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb85-1" title="1">DT[mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">40</span>, .(<span class="dt">mpg =</span> mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>)]</a></code></pre></div>
 <pre><code>#&gt; Empty data.table (0 rows and 1 cols): mpg</code></pre>
 <p>As mentioned <a href="#expression-delimiters">above</a>, <code>chain</code> can be used to chain expressions by evaluating the current one with <code>end_expr</code>, and immediately capturing the resulting <code>data.table</code> to start building a new expression. This can be helpful in situations where automatic chaining (or lack thereof) can lead to a change in the expression’s semantics:</p>
-<div class="sourceCode" id="cb70"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb70-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb70-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb70-3" title="3"><span class="st">  </span><span class="kw">transmute</span>(<span class="dt">mpg =</span> mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb70-4" title="4"><span class="st">  </span><span class="kw">filter</span>(mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">40</span>) <span class="op">%T&gt;%</span></a>
-<a class="sourceLine" id="cb70-5" title="5"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb70-6" title="6"><span class="st">  </span>end_expr</a></code></pre></div>
+<div class="sourceCode" id="cb87"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb87-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb87-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb87-3" title="3"><span class="st">  </span><span class="kw">transmute</span>(<span class="dt">mpg =</span> mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb87-4" title="4"><span class="st">  </span><span class="kw">filter</span>(mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">40</span>) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb87-5" title="5"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb87-6" title="6"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt; .DT_[mpg &gt; 40, list(mpg = mpg * 2)]</code></pre>
 <pre><code>#&gt; Empty data.table (0 rows and 1 cols): mpg</code></pre>
-<div class="sourceCode" id="cb73"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb73-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb73-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb73-3" title="3"><span class="st">  </span><span class="kw">transmute</span>(<span class="dt">mpg =</span> mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb73-4" title="4"><span class="st">  </span>chain <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb73-5" title="5"><span class="st">  </span><span class="kw">filter</span>(mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">40</span>) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb73-6" title="6"><span class="st">  </span>end_expr</a></code></pre></div>
+<div class="sourceCode" id="cb90"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb90-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb90-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb90-3" title="3"><span class="st">  </span><span class="kw">transmute</span>(<span class="dt">mpg =</span> mpg <span class="op">*</span><span class="st"> </span><span class="dv">2</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb90-4" title="4"><span class="st">  </span>chain <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb90-5" title="5"><span class="st">  </span><span class="kw">filter</span>(mpg <span class="op">&gt;</span><span class="st"> </span><span class="dv">40</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb90-6" title="6"><span class="st">  </span>end_expr</a></code></pre></div>
 <pre><code>#&gt;      mpg
 #&gt;  1: 42.0
 #&gt;  2: 42.0
@@ -697,32 +793,117 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <h3>Eager verbs</h3>
 <p>In the following cases, the mentioned verbs use the captured <code>data.table</code> eagerly during expression building:</p>
 <ul>
-<li><code>filter_sd</code> when <code>.SDcols</code> is a <code>tidyselect</code> call.</li>
-<li><code>mutate_sd</code> when <code>.SDcols</code> is a <code>tidyselect</code> call.</li>
+<li><code>filter_sd</code> when <code>.SDcols</code> is a <code>tidyselect</code> call or a predicate using <code>.COL</code>.</li>
+<li><code>mutate_sd</code> when <code>.SDcols</code> is a <code>tidyselect</code> call or a predicate using <code>.COL</code>.</li>
 </ul>
 <p>This can lead to unexpected results if we don’t keep in mind the expression that is built:</p>
-<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb75-1" title="1">DT[, mpg<span class="op">:</span>disp]</a></code></pre></div>
+<div class="sourceCode" id="cb92"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb92-1" title="1">DT[, mpg<span class="op">:</span>disp]</a></code></pre></div>
 <pre><code>#&gt;      mpg cyl disp
 #&gt;  1: 21.0   6  160
 #&gt;  2: 21.0   6  160
 #&gt; ---              
 #&gt; 31: 15.0   8  301
 #&gt; 32: 21.4   4  121</code></pre>
-<div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb77-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb77-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb77-3" title="3"><span class="st">  </span><span class="kw">select</span>(mpg<span class="op">:</span>disp) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb77-4" title="4"><span class="st">  </span><span class="kw">transmute</span>(<span class="dt">ans =</span> <span class="kw">sqrt</span>(mpg)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb77-5" title="5"><span class="st">  </span><span class="kw">filter_sd</span>(.COL <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>, <span class="dt">.SDcols =</span> <span class="kw">contains</span>(<span class="st">&quot;m&quot;</span>))</a></code></pre></div>
-<pre><code>#&gt; .DT_[, mpg:disp][mpg &gt; 0 &amp; am &gt; 0, list(ans = sqrt(mpg))]</code></pre>
+<div class="sourceCode" id="cb94"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb94-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb94-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb94-3" title="3"><span class="st">  </span><span class="kw">select</span>(mpg<span class="op">:</span>disp) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb94-4" title="4"><span class="st">  </span><span class="kw">transmute</span>(<span class="dt">ans =</span> <span class="kw">sqrt</span>(mpg)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb94-5" title="5"><span class="st">  </span><span class="kw">filter_sd</span>(<span class="kw">contains</span>(<span class="st">&quot;m&quot;</span>), .COL <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</a></code></pre></div>
+<pre><code>#&gt; .DT_[, .select_matching(.SD, mpg:disp, .negate = FALSE)][mpg &gt; 
+#&gt;     0 &amp; am &gt; 0, list(ans = sqrt(mpg))]</code></pre>
 <p>The <code>select</code> gets rid of <code>am</code>, but <code>filter_sd</code> sees the columns of <code>DT</code> before any expression has been evaluated. Explicit chaining can help in these cases, capturing intermediate results:</p>
-<div class="sourceCode" id="cb79"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb79-1" title="1">DT <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb79-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb79-3" title="3"><span class="st">  </span><span class="kw">select</span>(mpg<span class="op">:</span>disp) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb79-4" title="4"><span class="st">  </span>chain <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb79-5" title="5"><span class="st">  </span><span class="kw">transmute</span>(<span class="dt">ans =</span> <span class="kw">sqrt</span>(mpg)) <span class="op">%&gt;%</span></a>
-<a class="sourceLine" id="cb79-6" title="6"><span class="st">  </span><span class="kw">filter_sd</span>(.COL <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>, <span class="dt">.SDcols =</span> <span class="kw">contains</span>(<span class="st">&quot;m&quot;</span>))</a></code></pre></div>
+<div class="sourceCode" id="cb96"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb96-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb96-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb96-3" title="3"><span class="st">  </span><span class="kw">select</span>(mpg<span class="op">:</span>disp) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb96-4" title="4"><span class="st">  </span>chain <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb96-5" title="5"><span class="st">  </span><span class="kw">transmute</span>(<span class="dt">ans =</span> <span class="kw">sqrt</span>(mpg)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb96-6" title="6"><span class="st">  </span><span class="kw">filter_sd</span>(<span class="kw">contains</span>(<span class="st">&quot;m&quot;</span>), .COL <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</a></code></pre></div>
 <pre><code>#&gt; .DT_[mpg &gt; 0, list(ans = sqrt(mpg))]</code></pre>
 </div>
+</div>
+<div id="as-simple-as-possible" class="section level2">
+<h2>As simple as possible</h2>
+<p>Many of the verbs in this package try to help make code more concise whenever possible. However, some of the added convenience requires helper functions that aid with non-standard evaluation, which doesn’t always play nicely with the <code>data.table</code> optimizations mentioned in the beginning. Therefore, it is worth keeping the built expressions as close to traditional <code>data.table</code> syntax as possible. The verbs try to stick to this principle, but in order to build a simple output expression, they also require a simple input.</p>
+<p>Let us illustrate this point with <code>transmute_sd</code>, which can be used to compute summaries:</p>
+<div class="sourceCode" id="cb98"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb98-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb98-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb98-3" title="3"><span class="st">  </span><span class="kw">group_by</span>(am, vs) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb98-4" title="4"><span class="st">  </span><span class="kw">transmute_sd</span>(<span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;disp&quot;</span>), mean) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb98-5" title="5"><span class="st">  </span><span class="kw">frame_append</span>(<span class="dt">verbose =</span> <span class="ot">TRUE</span>) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb98-6" title="6"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb98-7" title="7"><span class="st">  </span>end_expr</a></code></pre></div>
+<pre><code>#&gt; .DT_[, c(lapply(.SD, mean)), by = list(am, vs), .SDcols = c(c(&quot;mpg&quot;, 
+#&gt;     &quot;disp&quot;)), verbose = TRUE]
+#&gt; Finding groups using forderv ... 0.020s elapsed (0.010s cpu) 
+#&gt; Finding group sizes from the positions (can be avoided to save RAM) ... 0.000s elapsed (0.000s cpu) 
+#&gt; Getting back original order ... 0.000s elapsed (0.000s cpu) 
+#&gt; lapply optimization changed j from &#39;c(lapply(.SD, mean))&#39; to &#39;list(mean(mpg), mean(disp))&#39;
+#&gt; GForce optimized j to &#39;list(gmean(mpg), gmean(disp))&#39;
+#&gt; Making each group and running j (GForce TRUE) ... 0.000s elapsed (0.000s cpu)</code></pre>
+<pre><code>#&gt;    am vs      mpg     disp
+#&gt; 1:  1  0 19.75000 206.2167
+#&gt; 2:  1  1 28.37143  89.8000
+#&gt; 3:  0  1 20.74286 175.1143
+#&gt; 4:  0  0 15.05000 357.6167</code></pre>
+<p>We can see, for example, <code>lapply optimization changed j ...</code>. Changing the expressions just a bit, without affecting its semantics, still hinders <code>data.table</code>’s ability to recognize cases it can optimize:</p>
+<div class="sourceCode" id="cb101"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb101-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb101-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb101-3" title="3"><span class="st">  </span><span class="kw">group_by</span>(am, vs) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb101-4" title="4"><span class="st">  </span><span class="kw">transmute_sd</span>(<span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;disp&quot;</span>), <span class="kw">mean</span>(.COL)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb101-5" title="5"><span class="st">  </span><span class="kw">frame_append</span>(<span class="dt">verbose =</span> <span class="ot">TRUE</span>) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb101-6" title="6"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb101-7" title="7"><span class="st">  </span>end_expr</a></code></pre></div>
+<pre><code>#&gt; .DT_[, .transmute_matching(.SD, .which = rlang::quo(c(&quot;mpg&quot;, 
+#&gt;     &quot;disp&quot;)), .hows = rlang::quos(mean(x = .COL))), by = list(am, 
+#&gt;     vs), verbose = TRUE]
+#&gt; Finding groups using forderv ... 0.000s elapsed (0.000s cpu) 
+#&gt; Finding group sizes from the positions (can be avoided to save RAM) ... 0.000s elapsed (0.000s cpu) 
+#&gt; Getting back original order ... 0.000s elapsed (0.000s cpu) 
+#&gt; lapply optimization is on, j unchanged as &#39;.transmute_matching(.SD, .which = rlang::quo(c(&quot;mpg&quot;, &quot;disp&quot;)), .hows = rlang::quos(mean(x = .COL)))&#39;
+#&gt; GForce is on, left j unchanged
+#&gt; Old mean optimization is on, left j unchanged.
+#&gt; Making each group and running j (GForce FALSE) ... The result of j is a named list. It&#39;s very inefficient to create the same names over and over again for each group. When j=list(...), any names are detected, removed and put back after grouping has completed, for efficiency. Using j=transform(), for example, prevents that speedup (consider changing to :=). This message may be upgraded to warning in future.
+#&gt; 
+#&gt;   collecting discontiguous groups took 0.000s for 4 groups
+#&gt;   eval(j) took 0.002s for 4 calls
+#&gt; 0.000s elapsed (0.000s cpu)</code></pre>
+<pre><code>#&gt;    am vs      mpg     disp
+#&gt; 1:  1  0 19.75000 206.2167
+#&gt; 2:  1  1 28.37143  89.8000
+#&gt; 3:  0  1 20.74286 175.1143
+#&gt; 4:  0  0 15.05000 357.6167</code></pre>
+<p>Corroborated by the statements <code>j unchanged</code>, <code>GForce FALSE</code>, etc. Nevertheless, a different syntax can enable additional functionality, for instance column renaming:</p>
+<div class="sourceCode" id="cb104"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb104-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb104-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb104-3" title="3"><span class="st">  </span><span class="kw">group_by</span>(am, vs) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb104-4" title="4"><span class="st">  </span><span class="kw">transmute_sd</span>(<span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;disp&quot;</span>), .(<span class="dt">avg =</span> <span class="kw">mean</span>(.COL), <span class="dt">min =</span> <span class="kw">min</span>(.COL))) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb104-5" title="5"><span class="st">  </span>end_expr</a></code></pre></div>
+<pre><code>#&gt;    am vs  avg.mpg avg.disp min.mpg min.disp
+#&gt; 1:  1  0 19.75000 206.2167    15.0    120.3
+#&gt; 2:  1  1 28.37143  89.8000    21.4     71.1
+#&gt; 3:  0  1 20.74286 175.1143    17.8    120.1
+#&gt; 4:  0  0 15.05000 357.6167    10.4    275.8</code></pre>
+<p>Thus, in order to decide which syntax to use, we must be aware of what can be optimized by <code>data.table</code>, but as a general rule of thumb, the simpler the better.</p>
+<div class="sourceCode" id="cb106"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb106-1" title="1">DT <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb106-2" title="2"><span class="st">  </span>start_expr <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb106-3" title="3"><span class="st">  </span><span class="kw">group_by</span>(am, vs) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb106-4" title="4"><span class="st">  </span><span class="kw">transmute_sd</span>(<span class="kw">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;disp&quot;</span>), .(min, max)) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb106-5" title="5"><span class="st">  </span><span class="kw">frame_append</span>(<span class="dt">verbose =</span> <span class="ot">TRUE</span>) <span class="op">%T&gt;%</span></a>
+<a class="sourceLine" id="cb106-6" title="6"><span class="st">  </span>print <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb106-7" title="7"><span class="st">  </span>end_expr</a></code></pre></div>
+<pre><code>#&gt; .DT_[, c(min = lapply(.SD, min), max = lapply(.SD, max)), by = list(am, 
+#&gt;     vs), .SDcols = c(c(&quot;mpg&quot;, &quot;disp&quot;)), verbose = TRUE]
+#&gt; Finding groups using forderv ... 0.000s elapsed (0.000s cpu) 
+#&gt; Finding group sizes from the positions (can be avoided to save RAM) ... 0.000s elapsed (0.000s cpu) 
+#&gt; Getting back original order ... 0.000s elapsed (0.000s cpu) 
+#&gt; lapply optimization changed j from &#39;c(min = lapply(.SD, min), max = lapply(.SD, max))&#39; to &#39;list(min(mpg), min(disp), max(mpg), max(disp))&#39;
+#&gt; GForce optimized j to &#39;list(gmin(mpg), gmin(disp), gmax(mpg), gmax(disp))&#39;
+#&gt; Making each group and running j (GForce TRUE) ... 0.000s elapsed (0.000s cpu)</code></pre>
+<pre><code>#&gt;    am vs  mpg  disp  mpg disp
+#&gt; 1:  1  0 15.0 120.3 26.0  351
+#&gt; 2:  1  1 21.4  71.1 33.9  121
+#&gt; 3:  0  1 17.8 120.1 24.4  258
+#&gt; 4:  0  0 10.4 275.8 19.2  472</code></pre>
 </div>
 
 

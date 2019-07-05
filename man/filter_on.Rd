@@ -5,16 +5,18 @@
 \title{Filter with secondary indices}
 \usage{
 filter_on(.data, ..., nomatch = getOption("datatable.nomatch"),
-  mult = "all", .chain = getOption("table.express.chain", TRUE))
+  mult = "all", .negate = FALSE,
+  .chain = getOption("table.express.chain", TRUE))
 }
 \arguments{
 \item{.data}{An instance of \link{ExprBuilder}.}
 
 \item{...}{Key-value pairs, see details.}
 
-\item{nomatch}{See \link[data.table:data.table]{data.table::data.table}.}
+\item{nomatch, mult}{See \link[data.table:data.table]{data.table::data.table}.}
 
-\item{mult}{See \link[data.table:data.table]{data.table::data.table}.}
+\item{.negate}{Whether to negate the expression and search only for rows that don't contain the
+given values.}
 
 \item{.chain}{Logical. Should a new frame be automatically chained to the expression if the
 clause being set already exists?}

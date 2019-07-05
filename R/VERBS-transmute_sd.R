@@ -3,19 +3,17 @@
 #' Like [transmute-table.express] but for a single call and maybe specifying `.SDcols`.
 #'
 #' @export
-#' @importFrom rlang call2
-#' @importFrom rlang call_modify
-#' @importFrom rlang call_standardise
-#' @importFrom rlang caller_env
-#' @importFrom rlang enexpr
 #' @importFrom rlang enquo
 #' @importFrom rlang expr
+#' @importFrom rlang is_call
+#' @importFrom rlang quo_get_env
+#' @importFrom rlang quo_get_expr
+#' @importFrom rlang quo
 #' @importFrom rlang quos
-#' @importFrom rlang zap
 #'
 #' @template data-arg
-#' @template transform-sd-args
 #' @param .SDcols See [data.table::data.table] and the details here.
+#' @template transform-sd-args
 #' @template parse-arg
 #' @template chain-arg
 #'
@@ -27,14 +25,14 @@
 #' expression's evaluation environment when calling [end_expr()] (i.e., [ExprBuilder]'s `eval`
 #' method).
 #'
-#' Said function includes two pronouns that can be used by `.how` and `.SDcols`:
+#' Said function supports two pronouns that can be used by `.how` and `.SDcols`:
 #'
 #' - `.COL`: the actual values of the column.
 #' - `.COLNAME`: the name of the column currently being evaluated.
 #'
 #' Unlike a call like `DT[, (vars) := expr]`, `.SDcols` can be created dynamically with an
-#' expression that evaluates to something that would be used in place of `vars` *without* using the
-#' captured `data.table`. See the examples here or in [table.express-package].
+#' expression that evaluates to something that would be used in place of `vars` *without* eagerly
+#' using the captured `data.table`. See the examples here or in [table.express-package].
 #'
 #' @examples
 #'
@@ -42,52 +40,50 @@
 #'
 #' data.table::as.data.table(mtcars) %>%
 #'     start_expr %>%
-#'     transmute_sd(.COL * 2, .SDcols = grepl("^d", .COLNAME))
+#'     transmute_sd(grepl("^d", .COLNAME), .COL * 2)
 #'
-transmute_sd <- function(.data, .how = identity, ..., .SDcols = everything(),
+#' data.table::as.data.table(mtcars) %>%
+#'     start_expr %>%
+#'     transmute_sd(is.numeric(.COL), .COL * 2)
+#'
+transmute_sd <- function(.data, .SDcols = everything(), .how = identity, ...,
                          .parse = getOption("table.express.parse", FALSE),
                          .chain = getOption("table.express.chain", TRUE))
 {
-    dots <- parse_dots(.parse, ...)
+    which_quo <- rlang::enquo(.SDcols)
     how_quo <- rlang::enquo(.how)
 
-    .how <- to_expr(rlang::enexpr(.how), .parse = .parse)
-    .which <- to_expr(rlang::enexpr(.SDcols), .parse = .parse)
+    which_expr <- to_expr(rlang::quo_get_expr(which_quo), .parse = .parse)
+    how_exprs <- to_expr(rlang::quo_get_expr(how_quo), .parse = .parse)
 
-    all_sdcols <- identical(.which, rlang::expr(everything()))
+    all_sdcols <- identical(which_expr, rlang::expr(everything()))
+    colon_call <- rlang::is_call(which_expr, ":")
 
-    if (evaled_is(how_quo, "function")) {
-        if (all_sdcols || evaled_is(.which, c("numeric", "character"))) {
-            clause <- rlang::expr(lapply(.SD, !!.how, !!!dots))
-            ans <- .data$set_select(clause, .chain)
+    if (can_combine_lapply(which_quo, how_quo)) {
+        hows <- standardize_lapplys(how_exprs, ..., .parse = .parse)
+        ans <- .data$set_select(hows, .chain)
 
-            if (!all_sdcols) {
-                frame_append(ans, .SDcols = c(!!.which), .parse = FALSE)
+        if (!all_sdcols) {
+            if (colon_call) {
+                frame_append(ans, .SDcols = !!which_expr, .parse = FALSE)
             }
-
-            return(ans)
+            else {
+                frame_append(ans, .SDcols = c(!!which_expr), .parse = FALSE)
+            }
         }
+    }
+    else {
+        hows <- standardize_calls(how_exprs, rlang::quo_get_env(how_quo), ..., .parse = .parse)
 
-        .how <- rlang::call2(.how, rlang::expr(.COL))
+        # just to avoid NOTE
+        .transmute_matching <- EBCompanion$helper_functions$.transmute_matching
+
+        clause <- rlang::expr(
+            .transmute_matching(.SD, .which = rlang::quo(!!which_expr), .hows = rlang::quos(!!!hows))
+        )
+
+        ans <- .data$set_select(clause, .chain)
     }
 
-    .how <- rlang::call_standardise(.how, rlang::caller_env())
-    .how <- rlang::call_modify(.how, ... = rlang::zap(), !!!dots)
-
-    # just to avoid NOTE
-    .non_null <- EBCompanion$helper_functions$.non_null
-    .transmute_matching <- EBCompanion$helper_functions$.transmute_matching
-
-    clause <- rlang::expr(
-        .non_null(Map(
-            .transmute_matching,
-            .COL = .SD,
-            .COLNAME = names(.SD),
-            .COLNAMES = list(names(.SD)),
-            .which = rlang::quos(!!.which),
-            .how = rlang::quos(!!.how)
-        ))
-    )
-
-    .data$set_select(clause, .chain)
+    ans
 }

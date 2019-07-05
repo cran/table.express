@@ -1,4 +1,4 @@
-context("  Select (a.k.a Transmute)")
+context("  Select")
 
 test_that("An empty clause is not an error.", {
     ans <- DT %>% start_expr %>% select() %>% end_expr
@@ -27,6 +27,12 @@ test_that("The select verb works with single columns.", {
     v <- "mpg"
     ans <- DT %>% start_expr %>% select(!!v, .parse = TRUE) %>% end_expr
     expectations(ans)
+
+    # ----------------------------------------------------------------------------------------------
+
+    expected <- DT[, .(mpg = 1:32)]
+    ans <- DT %>% start_expr %>% select(mpg = 1:32) %>% end_expr
+    expect_identical(ans, expected)
 })
 
 test_that("The select verb works with multiple columns.", {
@@ -48,7 +54,7 @@ test_that("The select verb works with multiple columns.", {
     ans <- DT %>% start_expr %>% select(1L:2L) %>% end_expr
     expectations(ans)
 
-    ans <- DT %>% start_expr %>% select(c(1L, 2L)) %>% end_expr
+    ans <- DT %>% start_expr %>% select(1L, 2L) %>% end_expr
     expectations(ans)
 
     ans <- DT %>% start_expr %>% select("mpg", "cyl", .parse = TRUE) %>% end_expr
@@ -63,37 +69,20 @@ test_that("The select verb works with multiple columns.", {
     expectations(ans)
 })
 
-test_that("Transmuting by value without parsing works.", {
-    ans <- DT %>% start_expr %>% transmute(ans = mpg * 2) %>% end_expr
-    expect_identical(ncol(ans), 1L)
-    expect_identical(ans$ans, DT$mpg * 2)
+test_that("Selection's semantics can be negated.", {
+    expected <- DT[, !c("mpg", "am")]
 
-    ans_name <- "ans"
-    ans <- DT %>% start_expr %>% transmute(!!ans_name := mpg * 2) %>% end_expr
-    expect_identical(ncol(ans), 1L)
-    expect_identical(ans$ans, DT$mpg * 2)
+    ans <- DT %>% start_expr %>% select(mpg, "am", .negate = TRUE) %>% end_expr
+    expect_identical(ans, expected)
 
-    ans <- DT %>% start_expr %>% transmute(mpg2 = mpg * 2, disp0.5 = disp / 2) %>% end_expr
-    expect_identical(ncol(ans), 2L)
-    expect_identical(ans$mpg2, DT$mpg * 2)
-    expect_identical(ans$disp0.5, DT$disp / 2)
-})
+    ans <- DT %>% start_expr %>% select(1L, 9L, .negate = TRUE) %>% end_expr
+    expect_identical(ans, expected)
 
-test_that("Transmuting by value with parsing works.", {
-    ans <- DT %>% start_expr %>% transmute(ans = "mpg * 2", .parse = TRUE) %>% end_expr
-    expect_identical(ncol(ans), 1L)
-    expect_identical(ans$ans, DT$mpg * 2)
+    # ----------------------------------------------------------------------------------------------
 
-    ans_name <- "ans"
-    ans <- DT %>% start_expr %>% transmute(!!ans_name := "mpg * 2", .parse = TRUE) %>% end_expr
-    expect_identical(ncol(ans), 1L)
-    expect_identical(ans$ans, DT$mpg * 2)
-
-    ans <- DT %>% start_expr %>% transmute(mpg2 = "mpg * 2", disp0.5 = "disp / 2", .parse = TRUE) %>% end_expr
-
-    expect_identical(ncol(ans), 2L)
-    expect_identical(ans$mpg2, DT$mpg * 2)
-    expect_identical(ans$disp0.5, DT$disp / 2)
+    expected <- DT[, !c("mpg", "cyl", "disp", "am", "drat", "qsec")]
+    ans <- DT %>% start_expr %>% select(mpg:disp, contains("m"), 5L, qsec, .negate = TRUE) %>% end_expr
+    expect_identical(ans, expected)
 })
 
 test_that("Select with tidyselect works.", {
@@ -126,4 +115,17 @@ test_that("Select with tidyselect works.", {
     colnames(DT) <- paste0("var", 0:10)
     ans <- DT %>% start_expr %>% select(num_range("var", 0:1)) %>% end_expr
     expectations(ans, 2L)
+})
+
+test_that("Combining tidyselect::everything with other expressions works like in dplyr.", {
+    expected <- data.table::setcolorder(data.table::copy(DT), "carb")
+
+    ans <- DT %>% start_expr %>% select(carb, everything()) %>% end_expr
+    expect_identical(ans, expected)
+
+    ans <- DT %>% start_expr %>% select(carb, everything(), everything()) %>% end_expr
+    expect_identical(ans, expected)
+
+    ans <- DT %>% start_expr %>% select(carb, mpg:gear, everything()) %>% end_expr
+    expect_identical(ans, expected)
 })
