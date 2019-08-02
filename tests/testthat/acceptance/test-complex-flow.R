@@ -122,13 +122,237 @@ test_that("The complex flow shown can be expressed with verbs.", {
 
     replaceNA <- function(x) { replace(x, is.na(x), 0) }
 
-    ans <- cons_ex %>%
+    ans <- data.table::copy(cons_ex) %>%
         start_expr %>%
         mutate_join(wide, carId, tripId, .SDcols = list(!!!sd_cols)) %>%
         end_expr %>%
         (data.table::setcolorder)(c("carId", "tripId", "begin", "end"))
 
+    expect_identical(ans, consEx)
+
     # ----------------------------------------------------------------------------------------------
 
+    aggregated <- cons_ex %>%
+        right_join(alertsEx, carId, begin <= timestamp, end >= timestamp, .expr = TRUE) %>%
+        select(carId, tripId, type, additionalInfo1) %>%
+        group_by(carId, tripId, type) %>%
+        transmute(typeCount = .N, typeMean = mean(additionalInfo1)) %>%
+        group_by(carId, tripId) %>%
+        mutate(totals = sum(typeCount))
+
+    wide <- data.table::dcast(
+        aggregated,
+        ... ~ type,
+        value.var = c("typeCount", "typeMean"),
+        sep = "",
+        fill = 0
+    )
+
+    ans <- data.table::copy(cons_ex) %>%
+        mutate_join(wide, carId, tripId, .SDcols = list(!!!sd_cols)) %>%
+        (data.table::setcolorder)(c("carId", "tripId", "begin", "end"))
+
     expect_identical(ans, consEx)
+})
+
+test_that("https://stackoverflow.com/q/56918395/5793905 works.", {
+    dt <- data.table::data.table(
+        analyst = rep(1:2, 10),
+        id = rep(1:5, 4),
+        year = rep(as.Date(c('2009-12-31', '2009-12-31', '2010-12-31', '2010-12-31'), format = '%Y-%m-%d'),
+                   5),
+        fdate = as.Date(format = '%Y-%m-%d', c(
+            '2009-07-31',
+            '2009-02-26',
+            '2010-01-31',
+            '2010-05-15',
+            '2009-06-30',
+            '2009-10-08',
+            '2010-07-31',
+            '2010-11-30',
+            '2009-01-31',
+            '2009-06-26',
+            '2010-05-03',
+            '2010-04-13',
+            '2009-10-30',
+            '2009-11-02',
+            '2010-03-28',
+            '2010-10-14',
+            '2009-02-17',
+            '2009-09-14',
+            '2010-08-02',
+            '2010-10-03'
+        ))
+    )
+
+    expected <- data.table::data.table(
+        key = c("id", "year", "analyst"),
+        analyst = c(
+            1L,
+            2L,
+            1L,
+            2L,
+            1L,
+            2L,
+            1L,
+            2L,
+            1L,
+            2L,
+            1L,
+            2L,
+            1L,
+            2L,
+            1L,
+            2L,
+            1L,
+            2L,
+            1L,
+            2L
+        ),
+        id = c(
+            1L,
+            1L,
+            1L,
+            1L,
+            2L,
+            2L,
+            2L,
+            2L,
+            3L,
+            3L,
+            3L,
+            3L,
+            4L,
+            4L,
+            4L,
+            4L,
+            5L,
+            5L,
+            5L,
+            5L
+        ),
+        year = structure(
+            c(
+                14609,
+                14609,
+                14974,
+                14974,
+                14609,
+                14609,
+                14974,
+                14974,
+                14609,
+                14609,
+                14974,
+                14974,
+                14609,
+                14609,
+                14974,
+                14974,
+                14609,
+                14609,
+                14974,
+                14974
+            ),
+            class = "Date"
+        ),
+        fdate = structure(
+            c(
+                14456,
+                14525,
+                14732,
+                14896,
+                14292,
+                14301,
+                14821,
+                14712,
+                14547,
+                14501,
+                14640,
+                14943,
+                14275,
+                14550,
+                14823,
+                14744,
+                14425,
+                14421,
+                14696,
+                14885
+            ),
+            class = "Date"
+        ),
+        first = c(
+            1L,
+            0L,
+            1L,
+            0L,
+            1L,
+            0L,
+            0L,
+            1L,
+            0L,
+            1L,
+            1L,
+            0L,
+            1L,
+            0L,
+            0L,
+            1L,
+            0L,
+            1L,
+            1L,
+            0L
+        ),
+        rev = c(
+            0L,
+            1L,
+            0L,
+            1L,
+            0L,
+            1L,
+            1L,
+            0L,
+            1L,
+            0L,
+            0L,
+            1L,
+            0L,
+            1L,
+            1L,
+            0L,
+            1L,
+            0L,
+            0L,
+            1L
+        )
+    )
+
+    dt0 <- data.table::copy(dt)
+
+    ans <- dt %>%
+        data.table::setkey(id, year, analyst) %>%
+        start_expr %>%
+        mutate(first = 0L) %>%
+        chain %>%
+        arrange(fdate) %>%
+        distinct(id, year) %>%
+        left_join(dt, id, year, analyst, fdate) %>%
+        mutate(first = 1L) %>%
+        mutate(rev = +(!first)) %>%
+        end_expr
+
+    expect_identical(ans, expected)
+
+    dt <- dt0
+
+    ans <- dt %>%
+        data.table::setkey(id, year, analyst) %>%
+        mutate(first = 0L) %>%
+        arrange(fdate) %>%
+        distinct(id, year) %>%
+        left_join(dt, id, year, analyst, fdate, .expr = TRUE) %>%
+        mutate(first = 1L) %>%
+        mutate(rev = +(!first))
+
+    expect_identical(ans, expected)
 })

@@ -2,24 +2,35 @@
 % Please edit documentation in R/VERBS-filter_on.R
 \name{filter_on}
 \alias{filter_on}
+\alias{filter_on.ExprBuilder}
+\alias{filter_on.data.table}
 \title{Filter with secondary indices}
 \usage{
-filter_on(.data, ..., nomatch = getOption("datatable.nomatch"),
-  mult = "all", .negate = FALSE,
-  .chain = getOption("table.express.chain", TRUE))
+filter_on(.data, ...)
+
+\method{filter_on}{ExprBuilder}(.data, ..., which = FALSE,
+  nomatch = getOption("datatable.nomatch"), mult = "all",
+  .negate = FALSE, .chain = getOption("table.express.chain", TRUE))
+
+\method{filter_on}{data.table}(.data, ..., .expr = FALSE)
 }
 \arguments{
 \item{.data}{An instance of \link{ExprBuilder}.}
 
-\item{...}{Key-value pairs, see details.}
+\item{...}{Key-value pairs, maybe with empty keys if the \code{data.table} already has them. See
+details.}
 
-\item{nomatch, mult}{See \link[data.table:data.table]{data.table::data.table}.}
+\item{which, nomatch, mult}{See \link[data.table:data.table]{data.table::data.table}.}
 
 \item{.negate}{Whether to negate the expression and search only for rows that don't contain the
 given values.}
 
 \item{.chain}{Logical. Should a new frame be automatically chained to the expression if the
 clause being set already exists?}
+
+\item{.expr}{If the input is a \code{data.table} and \code{.expr} is \code{TRUE}, an instance of
+\link{EagerExprBuilder} will be returned. Useful if you want to add clauses to \code{j}, e.g. with
+\link{mutate-table.express}.}
 }
 \description{
 Helper to filter specifying the \code{on} part of the \link[data.table:data.table]{data.table::data.table} query.
@@ -27,11 +38,10 @@ Helper to filter specifying the \code{on} part of the \link[data.table:data.tabl
 \details{
 The key-value pairs in '...' are processed as follows:
 \itemize{
-\item The names are used as \code{on} in the \code{data.table} frame.
+\item The names are used as \code{on} in the \code{data.table} frame. If any name is empty, \code{on} is left
+missing.
 \item The values are packed in a list and used as \code{i} in the \code{data.table} frame.
 }
-
-Thus, all pairs \strong{must} be named.
 
 To see more examples, check the
 \href{https://asardaes.github.io/table.express/articles/table.express.html}{vignette}, or the
@@ -42,7 +52,6 @@ To see more examples, check the
 data("mtcars")
 
 data.table::as.data.table(mtcars) \%>\%
-    start_expr \%>\%
     filter_on(cyl = 4, gear = 5)
 
 }

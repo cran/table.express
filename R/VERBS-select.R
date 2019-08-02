@@ -13,6 +13,8 @@ dplyr::select
 #' @importFrom rlang as_string
 #' @importFrom rlang expr
 #' @importFrom rlang is_call
+#' @importFrom rlang maybe_missing
+#' @importFrom rlang missing_arg
 #'
 #' @template data-arg
 #' @param ... Clause for selecting columns. For `j` inside the `data.table`'s frame.
@@ -32,7 +34,6 @@ dplyr::select
 #' data("mtcars")
 #'
 #' data.table::as.data.table(mtcars) %>%
-#'     start_expr %>%
 #'     select(mpg:cyl)
 #'
 select.ExprBuilder <- function(.data, ..., .negate = FALSE,
@@ -67,10 +68,43 @@ select.ExprBuilder <- function(.data, ..., .negate = FALSE,
     else {
         # avoid NOTE
         .select_matching <- EBCompanion$helper_functions$.select_matching
-        clause <- rlang::expr(.select_matching(.SD, !!!clauses, .negate = !!.negate))
+
+        calls <- !non_calls
+        if (.negate || any(nums) || (any(calls) && (
+            any(sapply(clauses[calls], rlang::is_call, name = ":")) ||
+            any(sapply(clauses[calls], is_tidyselect_call))
+        ))) {
+            needs_sd <- TRUE
+        }
+        else {
+            needs_sd <- FALSE
+        }
+
+        .SD <- if (needs_sd) rlang::expr(.SD) else rlang::missing_arg()
+        clause <- rlang::expr(.select_matching(!!rlang::maybe_missing(.SD), !!!clauses, .negate = !!.negate))
     }
 
-    .data$set_select(clause, .chain)
+    .data$set_j(clause, .chain)
+}
+
+#' @rdname select-table.express
+#' @export
+#' @importFrom rlang caller_env
+#'
+#' @param .parent_env See [end_expr()]
+#'
+select.EagerExprBuilder <- function(.data, ..., .parent_env = rlang::caller_env()) {
+    end_expr.ExprBuilder(select.ExprBuilder(.data, ...), .parent_env = .parent_env)
+}
+
+#' @rdname select-table.express
+#' @export
+#' @importFrom rlang caller_env
+#'
+select.data.table <- function(.data, ...) {
+    eb <- ExprBuilder$new(.data)
+    lazy_ans <- select.ExprBuilder(eb, ...)
+    end_expr.ExprBuilder(lazy_ans, .parent_env = rlang::caller_env())
 }
 
 #' @importFrom rlang call_args

@@ -11,6 +11,8 @@
 #' @importFrom rlang abort
 #' @importFrom rlang as_label
 #' @importFrom rlang dots_list
+#' @importFrom rlang call_name
+#' @importFrom rlang caller_env
 #' @importFrom rlang env_get_list
 #' @importFrom rlang eval_tidy
 #' @importFrom rlang expr
@@ -37,9 +39,9 @@
 #'   \item{`initialize(DT, dt_pronouns = list(), .verbose)`}{Constructor that receives a
 #'     [data.table::data.table-class] in `DT`. The `dt_pronouns` parameter is used internally when
 #'     chaining for joins.}
-#'   \item{`set_select(value, chain_if_needed)`}{Set the select clause expression(s), starting a new
-#'     frame if the current one already has said expression set.}
-#'   \item{`set_where(value, chain_if_needed)`}{Like `set_select` but for the where clause.}
+#'   \item{`set_j(value, chain_if_needed)`}{Set the `j` clause expression(s), starting a new frame
+#'     if the current one already has said expression set.}
+#'   \item{`set_i(value, chain_if_needed)`}{Like `set_j` but for the `i` clause.}
 #'   \item{`set_by(value, chain_if_needed)`}{Set the by clause expression.}
 #'   \item{`chain(type = "frame", dt)`}{By default, start a new expression with the current one as
 #'     its parent. If `type = "pronoun"`, `dt` is used to start a new expression that joins the
@@ -55,7 +57,9 @@
 ExprBuilder <- R6::R6Class(
     "ExprBuilder",
     public = list(
-        initialize = function(DT, dt_pronouns = list(), verbose = getOption("table.express.verbose", FALSE)) {
+        initialize = function(DT, dt_pronouns = list(), nested = list(),
+                              verbose = getOption("table.express.verbose", FALSE))
+        {
             if (data.table::is.data.table(DT)) {
                 private$.DT <- DT
             }
@@ -66,47 +70,30 @@ ExprBuilder <- R6::R6Class(
             }
 
             private$.dt_pronouns = dt_pronouns
+            private$.nested = nested
             private$.verbose = verbose
 
             invisible()
         },
 
-        set_select = function(value, chain_if_needed) {
-            ans <- private$.process_clause("select", value, chain_if_needed)
-            if (private$.verbose) { # nocov start
-                cat("Expression after ", rlang::as_label(sys.call(-1L)), ":\n", sep = "")
-                print(self)
-            } # nocov end
-
-            ans
+        set_i = function(value, chain_if_needed) {
+            private$.process_clause("i", value, chain_if_needed)
         },
 
-        set_where = function(value, chain_if_needed) {
-            ans <- private$.process_clause("where", value, chain_if_needed)
-            if (private$.verbose) { # nocov start
-                cat("Expression after ", rlang::as_label(sys.call(-1L)), ":\n", sep = "")
-                print(self)
-            } # nocov end
-
-            ans
+        set_j = function(value, chain_if_needed) {
+            private$.process_clause("j", value, chain_if_needed)
         },
 
         set_by = function(value, chain_if_needed) {
-            ans <- private$.process_clause("by", value, chain_if_needed)
-            if (private$.verbose) { # nocov start
-                cat("Expression after ", rlang::as_label(sys.call(-1L)), ":\n", sep = "")
-                print(self)
-            } # nocov end
-
-            ans
+            private$.process_clause("by", value, chain_if_needed)
         },
 
-        chain = function(type = "frame", dt) {
+        chain = function(type = "frame", next_dt, parent_env) {
             type <- match.arg(type, c("frame", "pronoun"))
             switch(
                 type,
                 frame = {
-                    other <- ExprBuilder$new(private$.DT)
+                    other <- ExprBuilder$new(private$.DT, private$.dt_pronouns, private$.nested, private$.verbose)
                     private$.insert_child(other)
                     if (private$.verbose) { # nocov start
                         cat("Starting new frame.\n")
@@ -115,16 +102,16 @@ ExprBuilder <- R6::R6Class(
                     other
                 },
                 pronoun = {
+                    dt <- self$eval(parent_env, TRUE)
                     dt_pronoun <- paste0(".DT_", length(private$.dt_pronouns), "_")
-                    dt_expr <- private$.compute_expr(rlang::sym(dt_pronoun))
-                    next_pronouns <- c(private$.dt_pronouns, rlang::list2(!!dt_pronoun := private$.DT))
+                    next_pronouns <- c(private$.dt_pronouns, rlang::list2(!!dt_pronoun := dt))
 
                     if (private$.verbose) { # nocov start
-                        cat("Starting new expression.\n")
+                        cat("Starting new expression, nesting previous .DT_ pronoun.\n")
                     } # nocov end
 
-                    eb <- ExprBuilder$new(dt, next_pronouns)
-                    eb$set_where(dt_expr, FALSE)
+                    eb <- ExprBuilder$new(next_dt, next_pronouns, private$.nested, private$.verbose)
+                    eb$set_i(rlang::sym(dt_pronoun), FALSE)
                 }
             )
         },
@@ -137,6 +124,35 @@ ExprBuilder <- R6::R6Class(
             else {
                 self
             }
+        },
+
+        seek_and_nestroy = function(.exprs) {
+            .DT_ <- private$.DT
+            .env <- rlang::caller_env(2L)
+            .verbose <- private$.verbose
+
+            lapply(.exprs, function(.expr) {
+                if (rlang::is_call(.expr) && isTRUE(rlang::call_name(.expr) == "nest_expr")) {
+                    .nested_exprs <- rlang::eval_tidy(.expr, env = .env)
+                    .functional_chain <- reduce_expr(.nested_exprs, rlang::expr(.DT_), rlang::expr(`%>%`))
+
+                    if (.verbose) { # nocov start
+                        cat("Nesting the result of evaluating the following functional chain:\n")
+                        print(.functional_chain)
+                    } # nocov end
+
+                    .env <- rlang::new_environment(list(.DT_ = .DT_), parent = .env)
+                    .ans <- rlang::eval_tidy(.functional_chain, env = .env)
+
+                    .nest_pronoun <- paste0(".NEST_", length(private$.nested), "_")
+                    private$.nested <- c(private$.nested, rlang::list2(!!.nest_pronoun := .ans))
+
+                    rlang::sym(.nest_pronoun)
+                }
+                else {
+                    .expr
+                }
+            })
         },
 
         eval = function(parent_env, by_ref, ...) {
@@ -163,31 +179,12 @@ ExprBuilder <- R6::R6Class(
                                   "Consider using 'chain' first."))
             }
 
-            dots <- rlang::dots_list(
-                .DT_ = .DT_,
-                !!!private$.dt_pronouns,
-                !!!EBCompanion$helper_functions,
-                !!!tidyselect::vars_select_helpers,
-                ...,
-                .homonyms = "last"
-            )
-
-            .expr_env <- rlang::new_environment(dots, parent = parent_env)
-
-            final_expr <- self$expr
-            if (private$.verbose) { # nocov start
-                cat("Evaluating:\n")
-                print(final_expr)
-            } # nocov end
-
-            final_expr <- rlang::expr(base::evalq(!!final_expr, .expr_env))
-
-            base::eval(final_expr)
+            private$.eval(parent_env, .DT_ = .DT_, ...)
         },
 
         tidy_select = function(select_expr) {
             if (private$.verbose) { # nocov start
-                cat("In ", rlang::as_label(sys.call(-1L)), ", using captured data.table eagerly to evaluate:\n", sep = "")
+                cat("In {", EBCompanion$get_top_call(), "}, using captured data.table eagerly to evaluate:\n", sep = "")
                 print(select_expr)
             } # nocov end
 
@@ -206,11 +203,6 @@ ExprBuilder <- R6::R6Class(
             }
         },
 
-        get_newest_pronoun = function() {
-            ans <- names(private$.dt_pronouns)
-            ans[length(ans)]
-        },
-
         print = function(...) {
             print(self$expr)
             invisible(self)
@@ -220,7 +212,14 @@ ExprBuilder <- R6::R6Class(
         # value should always be a list of 0 or more expressions
         appends = function(value) {
             if (missing(value)) return(private$.appends)
+
             private$.appends <- c(private$.appends, value)
+
+            if (private$.verbose) { # nocov start
+                cat("Expression after ", EBCompanion$get_top_call(), ":\n", sep = "")
+                print(self)
+            } # nocov end
+
             invisible()
         },
 
@@ -235,11 +234,12 @@ ExprBuilder <- R6::R6Class(
         .parent = NULL,
         .child = NULL,
 
-        .select = NULL,
-        .where = NULL,
+        .i = NULL,
+        .j = NULL,
         .by = NULL,
         .appends = NULL,
         .dt_pronouns = NULL,
+        .nested = NULL,
 
         .selected_eagerly = FALSE,
         .verbose = FALSE,
@@ -273,6 +273,12 @@ ExprBuilder <- R6::R6Class(
             }
 
             assign(private_name, value, private)
+
+            if (private$.verbose) { # nocov start
+                cat("Expression after ", EBCompanion$get_top_call(-3L), ":\n", sep = "")
+                print(self)
+            } # nocov end
+
             self
         },
 
@@ -288,11 +294,17 @@ ExprBuilder <- R6::R6Class(
             })
 
             if (".by" %in% names(expressions)) {
+                .EACHI <- NULL # avoid NOTE
                 which_by <- if (isTRUE(attr(expressions$.by, "key_by"))) "keyby" else "by"
+
+                if (identical(expressions$.by, rlang::expr(list(.EACHI)))) {
+                    expressions$.by <- rlang::expr(.EACHI)
+                }
+
                 names(expressions) <- sub("^.by$", which_by, names(expressions))
             }
 
-            to_unname <- names(expressions) %in% c(".select", ".where")
+            to_unname <- names(expressions) %in% c(".j", ".i")
             if (any(to_unname)) {
                 names(expressions)[to_unname] <- ""
             }
@@ -319,6 +331,27 @@ ExprBuilder <- R6::R6Class(
             private$.child <- root
 
             invisible()
+        },
+
+        .eval = function(.parent_env, ...) {
+            dots <- rlang::dots_list(
+                !!!private$.dt_pronouns,
+                !!!private$.nested,
+                !!!EBCompanion$helper_functions,
+                !!!tidyselect::vars_select_helpers,
+                ...,
+                .homonyms = "last"
+            )
+
+            .expr_env <- rlang::new_environment(dots, parent = .parent_env)
+
+            final_expr <- self$expr
+            if (private$.verbose) { # nocov start
+                cat("Evaluating:\n")
+                print(final_expr)
+            } # nocov end
+
+            rlang::eval_tidy(final_expr, env = .expr_env)
         }
     )
 )
@@ -329,8 +362,8 @@ ExprBuilder <- R6::R6Class(
 EBCompanion <- new.env()
 
 EBCompanion$clause_order <- c(
-    ".where",
-    ".select",
+    ".i",
+    ".j",
     ".by"
 )
 
@@ -340,6 +373,7 @@ EBCompanion$clause_order <- c(
 # beware of https://github.com/r-lib/rlang/issues/774
 #
 #' @importFrom rlang abort
+#' @importFrom rlang as_function
 #' @importFrom rlang as_label
 #' @importFrom rlang as_string
 #' @importFrom rlang call_name
@@ -347,15 +381,20 @@ EBCompanion$clause_order <- c(
 #' @importFrom rlang enexprs
 #' @importFrom rlang expr
 #' @importFrom rlang is_call
+#' @importFrom rlang is_formula
 #' @importFrom rlang is_logical
 #' @importFrom rlang new_data_mask
 #' @importFrom rlang new_environment
 #' @importFrom rlang quo_get_expr
+#' @importFrom stats as.formula
 #' @importFrom tidyselect scoped_vars
 #'
 EBCompanion$helper_functions <- list(
-    .select_matching = function(.SD, ..., .negate) {
-        tidyselect::scoped_vars(names(.SD))
+    .select_matching = function(.SD = list(), ..., .negate) {
+        if (!is.null(names(.SD))) {
+            tidyselect::scoped_vars(names(.SD))
+        }
+
         .clauses <- rlang::enexprs(...)
 
         if (.negate) {
@@ -431,6 +470,11 @@ EBCompanion$helper_functions <- list(
         else if (rlang::is_call(.which_expr, ":")) {
             .matches <- select_with_colon(.names, .which_expr)
         }
+        else if (rlang::is_formula(.which_expr)) {
+            .which_fun <- rlang::as_function(stats::as.formula(.which_expr))
+            .matches <- Map(.which_fun, .SD, .names)
+            .matches <- .names[unlist(.matches)]
+        }
         else if (uses_pronouns(.which_expr, c(".COL", ".COLNAME"))) {
             .matches <- sapply(.names, function(.COLNAME) {
                 .COL <- .SD[[.COLNAME]]
@@ -464,6 +508,8 @@ EBCompanion$helper_functions <- list(
         })
 
         .ans <- unlist(recursive = FALSE, lapply(.hows, function(.how) {
+            .how <- unformulate(.how)
+
             lapply(.data_masks, function(.data_mask) {
                 rlang::eval_tidy(.how, .data_mask)
             })
@@ -494,20 +540,10 @@ EBCompanion$helper_functions <- list(
                 .COL <- list()
             }
 
+            .how <- unformulate(.how)
             .data_mask <- rlang::new_data_mask(rlang::new_environment(.COL))
             rlang::eval_tidy(.how, .data_mask)
         })
-    },
-
-    .semi_joined_names = function(x, y, on) {
-        ans <- names(x)
-
-        prepend_i <- ans %in% names(y) & !(ans %in% on)
-        if (any(prepend_i)) {
-            ans[prepend_i] <- paste("i", ans[prepend_i], sep = ".")
-        }
-
-        ans
     }
 )
 
@@ -583,7 +619,7 @@ EBCompanion$set_child <- function(expr_builder, child) {
 #
 EBCompanion$chain_select_count <- function(expr_builder) {
     .recursion <- function(node, count) {
-        if (!is.null(node$.__enclos_env__$private$.select)) {
+        if (!is.null(node$.__enclos_env__$private$.j)) {
             count <- count + 1L
         }
 
@@ -596,6 +632,28 @@ EBCompanion$chain_select_count <- function(expr_builder) {
     }
 
     .recursion(EBCompanion$get_root(expr_builder), 0L)
+}
+
+# --------------------------------------------------------------------------------------------------
+# get_top_call
+#
+#' @importFrom rlang as_label
+#' @importFrom rlang call_name
+#' @importFrom rlang trace_back
+#'
+EBCompanion$get_top_call <- function(n = -2L) {
+    ns_funs <- ls(asNamespace("table.express"))
+    call_stack <- rlang::trace_back()[[1L]]
+    top_call <- Find(call_stack, right = TRUE, nomatch = sys.call(n), f = function(.call) {
+        if (is.null(.call)) return(FALSE)
+
+        .name <- rlang::call_name(.call)
+        if (is.null(.name)) return(FALSE)
+
+        .name %in% ns_funs
+    })
+
+    rlang::as_label(top_call)
 }
 
 lockEnvironment(EBCompanion, TRUE)

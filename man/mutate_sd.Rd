@@ -2,11 +2,22 @@
 % Please edit documentation in R/VERBS-mutate_sd.R
 \name{mutate_sd}
 \alias{mutate_sd}
+\alias{mutate_sd.ExprBuilder}
+\alias{mutate_sd.EagerExprBuilder}
+\alias{mutate_sd.data.table}
 \title{Mutate subset of data}
 \usage{
-mutate_sd(.data, .SDcols, .how = identity, ..., .prefix, .suffix,
+mutate_sd(.data, .SDcols, .how = identity, ...)
+
+\method{mutate_sd}{ExprBuilder}(.data, .SDcols, .how = identity, ...,
+  .pairwise = TRUE, .prefix, .suffix,
   .parse = getOption("table.express.parse", FALSE),
   .chain = getOption("table.express.chain", TRUE))
+
+\method{mutate_sd}{EagerExprBuilder}(.data, ...,
+  .parent_env = rlang::caller_env())
+
+\method{mutate_sd}{data.table}(.data, ...)
 }
 \arguments{
 \item{.data}{An instance of \link{ExprBuilder}.}
@@ -15,9 +26,12 @@ mutate_sd(.data, .SDcols, .how = identity, ..., .prefix, .suffix,
 
 \item{.how}{The function(s) or function call(s) that will perform the transformation. If many,
 a list should be used, either with \code{list()} or \code{.()}. If the list is named, the names will be
-used for the new columns' names.}
+used for the new columns' names. Lambdas specified as formulas are supported.}
 
 \item{...}{Possibly more arguments for \emph{all} functions/calls in \code{.how}.}
+
+\item{.pairwise}{If \code{FALSE}, each function in \code{.how} is applied to each column in \code{.SDcols} (like
+a cartesian product).}
 
 \item{.prefix, .suffix}{Only relevant when \code{.how} is a function: add a prefix or suffix to the new
 column's name. If neither is missing, \code{.prefix} has preference.}
@@ -26,6 +40,8 @@ column's name. If neither is missing, \code{.prefix} has preference.}
 
 \item{.chain}{Logical. Should a new frame be automatically chained to the expression if the
 clause being set already exists?}
+
+\item{.parent_env}{See \code{\link[=end_expr]{end_expr()}}}
 }
 \description{
 Like \link{mutate-table.express} but possibly recycling calls.
@@ -40,6 +56,7 @@ Additionally, \code{.SDcols} supports:
 \item \link[tidyselect:select_helpers]{tidyselect::select_helpers}
 \item A predicate using the \code{.COL} pronoun that should return a single logical when \code{.COL} is
 replaced by a \emph{column} of the data.
+\item A formula using \code{.} or \code{.x} instead of the aforementioned \code{.COL}.
 }
 
 The caveat is that the expression is evaluated eagerly, i.e. with the currently captured
@@ -56,6 +73,6 @@ data("mtcars")
 
 data.table::as.data.table(mtcars) \%>\%
     start_expr \%>\%
-    mutate_sd(c("mpg", "cyl"), .COL * 2)
+    mutate_sd(c("mpg", "cyl"), ~ .x * 2)
 
 }

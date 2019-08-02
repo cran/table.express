@@ -7,20 +7,17 @@ dplyr::right_join
 #' @rdname joins
 #' @export
 #' @importFrom rlang enexpr
-#' @importFrom rlang enexprs
 #' @importFrom rlang maybe_missing
 #'
 #' @examples
 #'
 #' # creates new data.table
 #' lhs %>%
-#'     start_expr %>%
-#'     right_join(rhs, x) %>%
-#'     end_expr
+#'     right_join(rhs, x)
 #'
 right_join.ExprBuilder <- function(x, y, ..., nomatch, mult, roll, rollends) {
-    y <- rlang::enexpr(y)
-    on <- lapply(rlang::enexprs(...), to_expr, .parse = TRUE)
+    y <- x$seek_and_nestroy(list(rlang::enexpr(y)))[[1L]]
+    on <- parse_dots(TRUE, ...)
 
     join_extras <- list(
         nomatch = rlang::maybe_missing(nomatch),
@@ -29,6 +26,26 @@ right_join.ExprBuilder <- function(x, y, ..., nomatch, mult, roll, rollends) {
         rollends = rlang::maybe_missing(rollends)
     )
 
-    x <- x$set_where(y, TRUE)
+    x <- x$set_i(y, TRUE)
     leftright_join(x, on, join_extras)
+}
+
+#' @rdname joins
+#' @export
+#' @importFrom rlang caller_env
+#'
+right_join.data.table <- function(x, ..., allow = FALSE, .expr = FALSE) {
+    eb <- if (.expr) EagerExprBuilder$new(x) else ExprBuilder$new(x)
+    lazy_ans <- right_join.ExprBuilder(eb, ...)
+
+    if (allow) {
+        frame_append(lazy_ans, allow.cartesian = TRUE)
+    }
+
+    if (.expr) {
+        lazy_ans
+    }
+    else {
+        end_expr.ExprBuilder(lazy_ans, .parent_env = rlang::caller_env())
+    }
 }

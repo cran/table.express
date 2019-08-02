@@ -107,6 +107,18 @@ test_that("Mutating SD with a list of expressions/functions works.", {
         end_expr(.by_ref = FALSE)
 
     expect_identical(ans, expected)
+
+    # ----------------------------------------------------------------------------------------------
+
+    expected <- data.table::copy(DT)[, `:=`(log.mpg = log(mpg),
+                                            log.am = log(am),
+                                            exp.mpg = exp(mpg),
+                                            exp.am = exp(am))]
+
+    ans <- data.table::copy(DT) %>%
+        mutate_sd(c("mpg", "am"), .(log, exp), .pairwise = FALSE)
+
+    expect_identical(ans, expected)
 })
 
 test_that("Mutating SD with tidyselect helpers works.", {
@@ -159,4 +171,31 @@ test_that("Mutating SD with :-calls works.", {
     dt <- data.table::copy(DT)
     ans <- dt %>% start_expr %>% mutate_sd(mpg:3, -1L) %>% end_expr
     expect_identical(ans, expected)
+})
+
+test_that("Eager mutation of SD works.", {
+    expected <- data.table::copy(DT)[, c("mpg", "cyl") := lapply(.SD, "*", 2), .SDcols = c("mpg", "cyl")]
+    ans <- data.table::copy(DT) %>% mutate_sd(c("mpg", "cyl"), .COL * 2)
+    expect_identical(ans, expected)
+
+    expected <- data.table::copy(DT)[vs == 0, c("mpg", "cyl") := lapply(.SD, "*", 2), .SDcols = c("mpg", "cyl")]
+    ans <- data.table::copy(DT) %>% where(vs == 0) %>% mutate_sd(c("mpg", "cyl"), .COL * 2)
+    expect_identical(ans, expected)
+})
+
+test_that("mutate_sd with formulas works.", {
+    expected <- data.table::copy(DT)[, c("mpg", "cyl") := list(mpg / 2, NULL)]
+    ans <- mutate_sd(data.table::copy(DT), c("mpg", "cyl"), list(~ . / 2, ~ NULL))
+    expect_identical(ans, expected)
+
+    expected <- data.table::copy(DT)[, c("mpg", "am") := list(0, 1)]
+    ans <- mutate_sd(data.table::copy(DT), ~ grepl("m", .y), list(~ 0, ~ 1))
+    expect_identical(ans, expected)
+
+    expected <- data.table::copy(DT)[, c("vs", "am") := lapply(.SD, function(.x) { replace(.x, .x == 0, NA_real_) }),
+                                     .SDcols = c("vs", "am")]
+    ans <- mutate_sd(data.table::copy(DT), ~ any(. == 0), ~ replace(.x, .x == 0, NA_real_))
+    expect_identical(ans, expected)
+
+    expect_error(mutate_sd(DT, ~ .x == 0, ~ replace(.x, .x == 0, NA_real_)), "single logical")
 })

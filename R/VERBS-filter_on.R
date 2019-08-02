@@ -3,12 +3,19 @@
 #' Helper to filter specifying the `on` part of the [data.table::data.table] query.
 #'
 #' @export
-#' @importFrom rlang abort
+#'
+filter_on <- function(.data, ...) {
+    UseMethod("filter_on")
+}
+
+#' @rdname filter_on
+#' @export
 #' @importFrom rlang expr
 #'
 #' @template data-arg
-#' @param ... Key-value pairs, see details.
-#' @param nomatch,mult See [data.table::data.table].
+#' @param ... Key-value pairs, maybe with empty keys if the `data.table` already has them. See
+#'   details.
+#' @param which,nomatch,mult See [data.table::data.table].
 #' @param .negate Whether to negate the expression and search only for rows that don't contain the
 #'   given values.
 #' @template chain-arg
@@ -17,10 +24,9 @@
 #'
 #' The key-value pairs in '...' are processed as follows:
 #'
-#' - The names are used as `on` in the `data.table` frame.
+#' - The names are used as `on` in the `data.table` frame. If any name is empty, `on` is left
+#'   missing.
 #' - The values are packed in a list and used as `i` in the `data.table` frame.
-#'
-#' Thus, all pairs **must** be named.
 #'
 #' @template docu-examples
 #'
@@ -29,28 +35,28 @@
 #' data("mtcars")
 #'
 #' data.table::as.data.table(mtcars) %>%
-#'     start_expr %>%
 #'     filter_on(cyl = 4, gear = 5)
 #'
-filter_on <- function(.data, ..., nomatch = getOption("datatable.nomatch"), mult = "all", .negate = FALSE,
-                      .chain = getOption("table.express.chain", TRUE))
+filter_on.ExprBuilder <- function(.data, ..., which = FALSE, nomatch = getOption("datatable.nomatch"), mult = "all",
+                                  .negate = FALSE, .chain = getOption("table.express.chain", TRUE))
 {
     key_value <- parse_dots(FALSE, ...)
     keys <- names(key_value)
     values <- unname(key_value)
-
-    if (any(is.null(keys)) || any(!nzchar(keys))) {
-        rlang::abort("All arguments in '...' must be named.")
-    }
 
     clause <- rlang::expr(list(!!!values))
     if (.negate) {
         clause <- rlang::expr(`!`(`!!`(clause)))
     }
 
-    ans <- .data$set_where(clause, .chain) %>%
-        frame_append(on = !!keys, .parse = FALSE)
+    ans <- .data$set_i(clause, .chain)
 
+    if (all(nzchar(keys))) {
+        frame_append(ans, on = !!keys, .parse = FALSE)
+    }
+    if (!missing(which)) {
+        frame_append(ans, which = !!which, .parse = FALSE)
+    }
     if (!missing(nomatch)) {
         frame_append(ans, nomatch = !!nomatch, .parse = FALSE)
     }
@@ -59,4 +65,22 @@ filter_on <- function(.data, ..., nomatch = getOption("datatable.nomatch"), mult
     }
 
     ans
+}
+
+#' @rdname filter_on
+#' @export
+#' @importFrom rlang caller_env
+#'
+#' @template expr-arg
+#'
+filter_on.data.table <- function(.data, ..., .expr = FALSE) {
+    eb <- if (.expr) EagerExprBuilder$new(.data) else ExprBuilder$new(.data)
+    lazy_ans <- filter_on.ExprBuilder(eb, ...)
+
+    if (.expr) {
+        lazy_ans
+    }
+    else {
+        end_expr.ExprBuilder(lazy_ans, .parent_env = rlang::caller_env())
+    }
 }

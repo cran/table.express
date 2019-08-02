@@ -2,11 +2,18 @@
 % Please edit documentation in R/VERBS-filter_sd.R
 \name{filter_sd}
 \alias{filter_sd}
+\alias{filter_sd.ExprBuilder}
+\alias{filter_sd.data.table}
 \title{Filter subset of data}
 \usage{
-filter_sd(.data, .SDcols, .how = Negate(is.na), ..., .collapse = `&`,
+filter_sd(.data, .SDcols, .how = Negate(is.na), ...)
+
+\method{filter_sd}{ExprBuilder}(.data, .SDcols, .how = Negate(is.na),
+  ..., which, .collapse = `&`,
   .parse = getOption("table.express.parse", FALSE),
-  .chain = getOption("table.express.chain", TRUE))
+  .chain = getOption("table.express.chain", TRUE), .caller_env_n = 1L)
+
+\method{filter_sd}{data.table}(.data, ..., .expr = FALSE)
 }
 \arguments{
 \item{.data}{An instance of \link{ExprBuilder}.}
@@ -17,25 +24,36 @@ filter_sd(.data, .SDcols, .how = Negate(is.na), ..., .collapse = `&`,
 
 \item{...}{Possibly more arguments for \code{.how}.}
 
+\item{which}{Passed to \link[data.table:data.table]{data.table::data.table}.}
+
 \item{.collapse}{See \link{where-table.express}.}
 
 \item{.parse}{Logical. Whether to apply \code{\link[rlang:parse_expr]{rlang::parse_expr()}} to obtain the expressions.}
 
 \item{.chain}{Logical. Should a new frame be automatically chained to the expression if the
 clause being set already exists?}
+
+\item{.caller_env_n}{Internal. Passed to \code{\link[rlang:caller_env]{rlang::caller_env()}} to find the function specified in
+\code{.how} and \link[rlang:call_standardise]{standardize} its call.}
+
+\item{.expr}{If the input is a \code{data.table} and \code{.expr} is \code{TRUE}, an instance of
+\link{EagerExprBuilder} will be returned. Useful if you want to add clauses to \code{j}, e.g. with
+\link{mutate-table.express}.}
 }
 \description{
 Helper to filter rows with the same condition applied to a subset of the data.
 }
 \details{
 This function adds/chains an \code{i} expression that will be evaluated by \link[data.table:data.table]{data.table::data.table},
-and it supports the \code{.COL} pronoun. The \code{.how} condition is applied to all \code{.SDcols}.
+and it supports the \code{.COL} pronoun and lambdas as formulas. The \code{.how} condition is applied to
+all \code{.SDcols}.
 
 Additionally, \code{.SDcols} supports:
 \itemize{
 \item \link[tidyselect:select_helpers]{tidyselect::select_helpers}
 \item A predicate using the \code{.COL} pronoun that should return a single logical when \code{.COL} is
 replaced by a \emph{column} of the data.
+\item A formula using \code{.} or \code{.x} instead of the aforementioned \code{.COL}.
 }
 
 The caveat is that the expression is evaluated eagerly, i.e. with the currently captured
@@ -51,7 +69,6 @@ To see more examples, check the
 data("mtcars")
 
 data.table::as.data.table(mtcars) \%>\%
-    start_expr \%>\%
-    filter_sd(c("vs", "am"), .COL == 1)
+    filter_sd(c("vs", "am"), ~ .x == 1)
 
 }

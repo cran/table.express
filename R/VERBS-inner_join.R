@@ -7,20 +7,18 @@ dplyr::inner_join
 #' @rdname joins
 #' @export
 #' @importFrom rlang enexpr
-#' @importFrom rlang enexprs
 #'
 #' @examples
 #'
 #' lhs %>%
-#'     start_expr %>%
-#'     inner_join(rhs, x) %>%
-#'     end_expr
+#'     inner_join(rhs, x)
 #'
 inner_join.ExprBuilder <- function(x, y, ...) {
     y <- rlang::enexpr(y)
-    on <- lapply(rlang::enexprs(...), to_expr, .parse = TRUE)
+    on <- parse_dots(TRUE, ...)
 
-    x <- x$set_where(y, TRUE)
+    y <- x$seek_and_nestroy(list(y))[[1L]]
+    x <- x$set_i(y, TRUE)
     frame_append(x, nomatch = NULL, mult = "all")
 
     if (length(on) > 0L) {
@@ -28,4 +26,20 @@ inner_join.ExprBuilder <- function(x, y, ...) {
     }
 
     x
+}
+
+#' @rdname joins
+#' @export
+#' @importFrom rlang caller_env
+#'
+inner_join.data.table <- function(x, ..., .expr = FALSE) {
+    eb <- if (.expr) EagerExprBuilder$new(x) else ExprBuilder$new(x)
+    lazy_ans <- inner_join.ExprBuilder(eb, ...)
+
+    if (.expr) {
+        lazy_ans
+    }
+    else {
+        end_expr.ExprBuilder(lazy_ans, .parent_env = rlang::caller_env())
+    }
 }

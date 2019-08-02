@@ -2,11 +2,21 @@
 % Please edit documentation in R/VERBS-transmute_sd.R
 \name{transmute_sd}
 \alias{transmute_sd}
+\alias{transmute_sd.ExprBuilder}
+\alias{transmute_sd.EagerExprBuilder}
+\alias{transmute_sd.data.table}
 \title{Transmute subset of data}
 \usage{
-transmute_sd(.data, .SDcols = everything(), .how = identity, ...,
-  .parse = getOption("table.express.parse", FALSE),
-  .chain = getOption("table.express.chain", TRUE))
+transmute_sd(.data, .SDcols = everything(), .how = identity, ...)
+
+\method{transmute_sd}{ExprBuilder}(.data, .SDcols = everything(),
+  .how = identity, ..., .parse = getOption("table.express.parse",
+  FALSE), .chain = getOption("table.express.chain", TRUE))
+
+\method{transmute_sd}{EagerExprBuilder}(.data, ...,
+  .parent_env = rlang::caller_env())
+
+\method{transmute_sd}{data.table}(.data, ...)
 }
 \arguments{
 \item{.data}{An instance of \link{ExprBuilder}.}
@@ -15,7 +25,7 @@ transmute_sd(.data, .SDcols = everything(), .how = identity, ...,
 
 \item{.how}{The function(s) or function call(s) that will perform the transformation. If many,
 a list should be used, either with \code{list()} or \code{.()}. If the list is named, the names will be
-used for the new columns' names.}
+used for the new columns' names. Lambdas specified as formulas are supported.}
 
 \item{...}{Possibly more arguments for \emph{all} functions/calls in \code{.how}.}
 
@@ -23,6 +33,8 @@ used for the new columns' names.}
 
 \item{.chain}{Logical. Should a new frame be automatically chained to the expression if the
 clause being set already exists?}
+
+\item{.parent_env}{See \code{\link[=end_expr]{end_expr()}}}
 }
 \description{
 Like \link{transmute-table.express} but for a single call and maybe specifying \code{.SDcols}.
@@ -40,6 +52,9 @@ Said function supports two pronouns that can be used by \code{.how} and \code{.S
 \item \code{.COLNAME}: the name of the column currently being evaluated.
 }
 
+Additionally, lambdas specified as formulas are also supported. In those cases, \code{.x} is
+equivalent to \code{.COL} and \code{.y} to \code{.COLNAME}.
+
 Unlike a call like \code{DT[, (vars) := expr]}, \code{.SDcols} can be created dynamically with an
 expression that evaluates to something that would be used in place of \code{vars} \emph{without} eagerly
 using the captured \code{data.table}. See the examples here or in \link{table.express-package}.
@@ -49,11 +64,9 @@ using the captured \code{data.table}. See the examples here or in \link{table.ex
 data("mtcars")
 
 data.table::as.data.table(mtcars) \%>\%
-    start_expr \%>\%
-    transmute_sd(grepl("^d", .COLNAME), .COL * 2)
+    transmute_sd(~ grepl("^d", .y), ~ .x * 2)
 
 data.table::as.data.table(mtcars) \%>\%
-    start_expr \%>\%
-    transmute_sd(is.numeric(.COL), .COL * 2)
+    transmute_sd(~ is.numeric(.x), ~ .x * 2)
 
 }

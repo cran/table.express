@@ -3,6 +3,13 @@
 #' Like [transmute-table.express] but for a single call and maybe specifying `.SDcols`.
 #'
 #' @export
+#'
+transmute_sd <- function(.data, .SDcols = everything(), .how = identity, ...) {
+    UseMethod("transmute_sd")
+}
+
+#' @rdname transmute_sd
+#' @export
 #' @importFrom rlang enquo
 #' @importFrom rlang expr
 #' @importFrom rlang is_call
@@ -30,6 +37,9 @@
 #' - `.COL`: the actual values of the column.
 #' - `.COLNAME`: the name of the column currently being evaluated.
 #'
+#' Additionally, lambdas specified as formulas are also supported. In those cases, `.x` is
+#' equivalent to `.COL` and `.y` to `.COLNAME`.
+#'
 #' Unlike a call like `DT[, (vars) := expr]`, `.SDcols` can be created dynamically with an
 #' expression that evaluates to something that would be used in place of `vars` *without* eagerly
 #' using the captured `data.table`. See the examples here or in [table.express-package].
@@ -39,16 +49,14 @@
 #' data("mtcars")
 #'
 #' data.table::as.data.table(mtcars) %>%
-#'     start_expr %>%
-#'     transmute_sd(grepl("^d", .COLNAME), .COL * 2)
+#'     transmute_sd(~ grepl("^d", .y), ~ .x * 2)
 #'
 #' data.table::as.data.table(mtcars) %>%
-#'     start_expr %>%
-#'     transmute_sd(is.numeric(.COL), .COL * 2)
+#'     transmute_sd(~ is.numeric(.x), ~ .x * 2)
 #'
-transmute_sd <- function(.data, .SDcols = everything(), .how = identity, ...,
-                         .parse = getOption("table.express.parse", FALSE),
-                         .chain = getOption("table.express.chain", TRUE))
+transmute_sd.ExprBuilder <- function(.data, .SDcols = everything(), .how = identity, ...,
+                                     .parse = getOption("table.express.parse", FALSE),
+                                     .chain = getOption("table.express.chain", TRUE))
 {
     which_quo <- rlang::enquo(.SDcols)
     how_quo <- rlang::enquo(.how)
@@ -61,7 +69,7 @@ transmute_sd <- function(.data, .SDcols = everything(), .how = identity, ...,
 
     if (can_combine_lapply(which_quo, how_quo)) {
         hows <- standardize_lapplys(how_exprs, ..., .parse = .parse)
-        ans <- .data$set_select(hows, .chain)
+        ans <- .data$set_j(hows, .chain)
 
         if (!all_sdcols) {
             if (colon_call) {
@@ -82,8 +90,28 @@ transmute_sd <- function(.data, .SDcols = everything(), .how = identity, ...,
             .transmute_matching(.SD, .which = rlang::quo(!!which_expr), .hows = rlang::quos(!!!hows))
         )
 
-        ans <- .data$set_select(clause, .chain)
+        ans <- .data$set_j(clause, .chain)
     }
 
     ans
+}
+
+#' @rdname transmute_sd
+#' @export
+#' @importFrom rlang caller_env
+#'
+#' @param .parent_env See [end_expr()]
+#'
+transmute_sd.EagerExprBuilder <- function(.data, ..., .parent_env = rlang::caller_env()) {
+    end_expr.ExprBuilder(transmute_sd.ExprBuilder(.data, ...), .parent_env = .parent_env)
+}
+
+#' @rdname transmute_sd
+#' @export
+#' @importFrom rlang caller_env
+#'
+transmute_sd.data.table <- function(.data, ...) {
+    eb <- ExprBuilder$new(.data)
+    lazy_ans <- transmute_sd.ExprBuilder(eb, ...)
+    end_expr.ExprBuilder(lazy_ans, .parent_env = rlang::caller_env())
 }

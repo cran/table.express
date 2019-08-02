@@ -5,40 +5,72 @@
 \name{joins}
 \alias{joins}
 \alias{anti_join.ExprBuilder}
+\alias{anti_join.data.table}
 \alias{full_join.ExprBuilder}
+\alias{full_join.data.table}
 \alias{inner_join.ExprBuilder}
+\alias{inner_join.data.table}
 \alias{left_join.ExprBuilder}
+\alias{left_join.data.table}
 \alias{mutate_join}
 \alias{mutate_join.ExprBuilder}
+\alias{mutate_join.EagerExprBuilder}
+\alias{mutate_join.data.table}
 \alias{right_join.ExprBuilder}
+\alias{right_join.data.table}
 \alias{semi_join.ExprBuilder}
+\alias{semi_join.data.table}
 \title{Joining verbs}
 \usage{
 \method{anti_join}{ExprBuilder}(x, y, ...)
 
+\method{anti_join}{data.table}(x, ..., .expr = FALSE)
+
 \method{full_join}{ExprBuilder}(x, y, ..., sort = TRUE, allow = TRUE,
   .parent_env)
 
+\method{full_join}{data.table}(x, ...)
+
 \method{inner_join}{ExprBuilder}(x, y, ...)
+
+\method{inner_join}{data.table}(x, ..., .expr = FALSE)
 
 \method{left_join}{ExprBuilder}(x, y, ..., nomatch, mult, roll, rollends,
   .parent_env)
+
+\method{left_join}{data.table}(x, y, ..., allow = FALSE, .expr = FALSE)
 
 mutate_join(x, y, ...)
 
 \method{mutate_join}{ExprBuilder}(x, y, ..., .SDcols, mult, roll, rollends,
   allow = FALSE, .by_each = NULL, .parent_env)
 
+\method{mutate_join}{EagerExprBuilder}(x, ...,
+  .parent_env = rlang::caller_env())
+
+\method{mutate_join}{data.table}(x, y, ...)
+
 \method{right_join}{ExprBuilder}(x, y, ..., nomatch, mult, roll, rollends)
 
-\method{semi_join}{ExprBuilder}(x, y, ..., .parent_env)
+\method{right_join}{data.table}(x, ..., allow = FALSE, .expr = FALSE)
+
+\method{semi_join}{ExprBuilder}(x, y, ..., allow = FALSE,
+  .eager = FALSE)
+
+\method{semi_join}{data.table}(x, y, ..., allow = FALSE,
+  .eager = FALSE)
 }
 \arguments{
 \item{x}{An \link{ExprBuilder} instance.}
 
-\item{y}{A \link[data.table:data.table-class]{data.table::data.table}.}
+\item{y}{A \link[data.table:data.table-class]{data.table::data.table} or, for some verbs (see details), a call to
+\code{\link[=nest_expr]{nest_expr()}}.}
 
 \item{...}{Expressions for the \code{on} part of the join.}
+
+\item{.expr}{If the input is a \code{data.table} and \code{.expr} is \code{TRUE}, an instance of
+\link{EagerExprBuilder} will be returned. Useful if you want to add clauses to \code{j}, e.g. with
+\link{mutate-table.express}.}
 
 \item{sort}{Passed to \link[data.table:merge]{data.table::merge}.}
 
@@ -51,6 +83,10 @@ mutate_join(x, y, ...)
 \item{.SDcols}{For \code{mutate_join}. See the details below.}
 
 \item{.by_each}{For \code{mutate_join}. See the details below.}
+
+\item{.eager}{For \code{semi_join}. If \code{TRUE}, it uses \code{\link[=nest_expr]{nest_expr()}} to build an expression like
+\href{https://stackoverflow.com/a/18971223/5793905}{this} instead of the default one. This uses the
+captured \code{data.table} eagerly, so use \code{\link[=chain]{chain()}} when needed. The default is lazy.}
 }
 \description{
 Two-table joins. Check the
@@ -58,11 +94,16 @@ Two-table joins. Check the
 information.
 }
 \details{
+The following joins support \code{\link[=nest_expr]{nest_expr()}} in \code{y}:
+\itemize{
+\item \code{anti_join}
+\item \code{inner_join}
+\item \code{right_join}
+}
+
 The \code{full_join} method is really a wrapper for \code{data.table::merge} that specifies \code{all = TRUE}.
 The expression in \code{x} gets evaluated, merged with \code{y}, and the result is captured in a new
 \link{ExprBuilder}. Useful in case you want to keep building expressions after the merge.
-
-The \code{semi_join} method \link[=chain]{starts a new expression} immediately.
 }
 \section{Mutating join}{
 
@@ -104,22 +145,16 @@ rhs <- data.table::data.table(x = c("c", "b"),
 
 
 rhs \%>\%
-    start_expr \%>\%
-    anti_join(lhs, x, v) \%>\%
-    end_expr
+    anti_join(lhs, x, v)
 
 
 lhs \%>\%
-    start_expr \%>\%
-    inner_join(rhs, x) \%>\%
-    end_expr
+    inner_join(rhs, x)
 
 
 # creates new data.table
 lhs \%>\%
-    start_expr \%>\%
-    left_join(rhs, x) \%>\%
-    end_expr
+    left_join(rhs, x)
 
 
 # would modify lhs by reference
@@ -135,16 +170,12 @@ rhs \%>\%
 
 # creates new data.table
 lhs \%>\%
-    start_expr \%>\%
-    right_join(rhs, x) \%>\%
-    end_expr
+    right_join(rhs, x)
 
 
 # keep only columns from lhs
 lhs \%>\%
-    start_expr \%>\%
-    semi_join(rhs, x) \%>\%
-    end_expr
+    semi_join(rhs, x)
 
 }
 \seealso{

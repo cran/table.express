@@ -139,3 +139,36 @@ test_that("The filter verb works with several values per key for primary keys.",
 
     expect_identical(ans, expected)
 })
+
+test_that("Filtering when passing which = TRUE works.", {
+    expected <- DT[cyl == 6 & mpg > 20, which = TRUE]
+    ans <- DT %>% start_expr %>% filter(cyl == 6, mpg > 20, which = TRUE) %>% end_expr
+    expect_identical(ans, expected)
+})
+
+test_that("Nesting expressions in where/filter works.", {
+    expected <- lhs[lhs[, .I[v == max(v)], by=x]$V1]
+
+    ans <- lhs %>%
+        start_expr %>%
+        where(nest_expr(.start = FALSE, { .[, .I[v == max(v)], by=x]$V1 })) %>%
+        end_expr
+
+    expect_identical(ans, expected)
+})
+
+test_that("Eager version of filter works.", {
+    expected <- DT[vs == 0 & am == 0]
+    ans <- filter(DT, vs == 0, am == 0)
+    expect_identical(ans, expected)
+
+    expected <- DT[vs == 0 | gear == 4]
+    ans <- filter(DT, vs == 0, gear == 4, .collapse = `|`)
+    expect_identical(ans, expected)
+})
+
+test_that("Semi-eager version of where works.", {
+    expected <- DT[vs == 0 & am == 0, .(mean(mpg), max(hp), min(disp))]
+    ans <- DT %>% where(vs == 0, am == 0) %>% transmute(mean(mpg), max(hp), min(disp))
+    expect_identical(ans, expected)
+})

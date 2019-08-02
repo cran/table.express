@@ -6,44 +6,79 @@ dplyr::semi_join
 #' @include VERBS-joins.R
 #' @rdname joins
 #' @export
-#' @importFrom data.table setnames
-#' @importFrom rlang as_string
-#' @importFrom rlang enexprs
+#' @importFrom rlang enexpr
 #' @importFrom rlang expr
-#' @importFrom rlang maybe_missing
-#' @importFrom rlang sym
+#' @importFrom rlang exprs
 #'
-#' @details
-#'
-#' The `semi_join` method [starts a new expression][chain()] immediately.
+#' @param .eager For `semi_join`. If `TRUE`, it uses [nest_expr()] to build an expression like
+#'   [this](https://stackoverflow.com/a/18971223/5793905) instead of the default one. This uses the
+#'   captured `data.table` eagerly, so use [chain()] when needed. The default is lazy.
 #'
 #' @examples
 #'
 #' # keep only columns from lhs
 #' lhs %>%
-#'     start_expr %>%
-#'     semi_join(rhs, x) %>%
-#'     end_expr
+#'     semi_join(rhs, x)
 #'
-semi_join.ExprBuilder <- function(x, y, ..., .parent_env) {
-    on <- rlang::enexprs(...)
-    on <- name_switcheroo(on)
-    on_char <- sapply(unname(on), rlang::as_string)
+semi_join.ExprBuilder <- function(x, y, ..., allow = FALSE, .eager = FALSE) {
+    y <- rlang::enexpr(y)
+    on <- parse_dots(TRUE, ...)
 
-    eb <- x$chain("pronoun", y)
-    new_pronoun <- rlang::sym(eb$get_newest_pronoun())
+    if (.eager) {
+        where_expr <- rlang::exprs(nest_expr(
+            .parse = FALSE,
+            .end = FALSE,
+            inner_join(!!y, !!!on),
+            frame_append(which = TRUE, allow.cartesian = !!allow),
+            end_expr,
+            unique
+        ))
 
-    # avoid NOTE
-    .semi_joined_names <- EBCompanion$helper_functions$.semi_joined_names
+        where_clause <- x$seek_and_nestroy(where_expr)[[1L]]
+        x <- x$set_i(where_clause, TRUE)
+    }
+    else {
+        x <- x$chain_if_set(".i", ".j")
+        x <- x$set_i(y, FALSE)
+        x <- x$set_j(rlang::expr(unique(.SD)), FALSE)
 
-    if (length(on) > 0L) {
-        frame_append(eb, on = list(!!!on))
+        frame_append(x, nomatch = NULL, .parse = FALSE)
+        if (length(on) > 0L) {
+            frame_append(x, on = list(!!!on), .parse = FALSE)
+        }
     }
 
-    frame_append(eb, nomatch = NULL, mult = "first")
-    eb <- eb$set_select(rlang::expr(mget(.semi_joined_names(!!new_pronoun, .DT_, !!on_char))))
+    x
+}
 
-    DT <- end_expr.ExprBuilder(eb, .parent_env = rlang::maybe_missing(.parent_env))
-    data.table::setnames(DT, sub("^i.", "", names(DT)))
-    start_expr.data.table(DT)
+#' @rdname joins
+#' @export
+#' @importFrom rlang caller_env
+#' @importFrom rlang enexpr
+#' @importFrom rlang exprs
+#'
+semi_join.data.table <- function(x, y, ..., allow = FALSE, .eager = FALSE) {
+    eb <- ExprBuilder$new(x)
+    y <- rlang::enexpr(y)
+
+    if (.eager) {
+        on <- parse_dots(TRUE, ...)
+
+        where_expr <- rlang::exprs(nest_expr(
+            .parse = FALSE,
+            .end = FALSE,
+            inner_join(!!y, !!!on),
+            frame_append(which = TRUE, allow.cartesian = !!allow),
+            end_expr,
+            unique
+        ))
+
+        where_clause <- eb$seek_and_nestroy(where_expr)[[1L]]
+        lazy_ans <- eb$set_i(where_clause, FALSE)
+    }
+    else {
+        lazy_ans <- semi_join.ExprBuilder(eb, y = !!y, ...)
+    }
+
+    end_expr.ExprBuilder(lazy_ans, .parent_env = rlang::caller_env())
 }
