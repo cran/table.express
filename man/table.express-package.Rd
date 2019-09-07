@@ -14,6 +14,13 @@ frame.
 Since this package's functionality is based on the \pkg{rlang} package, and \pkg{rlang} is still
 evolving, breaking changes may be needed in the future.
 
+Note that since version 0.3.0, it is not possible to load \pkg{table.express} and \pkg{dtplyr} at
+the same time, since they define the same \code{data.table} methods for many \pkg{dplyr} generics.
+
+If a package uses \code{dplyr} without importing \code{data.table}, the methods in this package will try to
+delegate to the \code{data.frame} methods with a warning. To avoid the warning, use
+\code{options(table.express.warn.cedta = FALSE)}.
+
 This software package was developed independently of any organization or institution that is or
 has been associated with the author.
 }
@@ -82,24 +89,28 @@ DT \%>\%
 DT \%>\%
     filter_on(cyl = 4, gear = 5) # note we don't use ==
 
+scale_undim <- function(...) {
+    as.numeric(scale(...)) # remove dimensions
+}
+
 # Chaining
 DT \%>\%
     start_expr \%>\%
     mutate_sd(as.integer, .SDcols = whole) \%>\%
     chain \%>\%
     filter_sd(.COL == 1, .SDcols = c("vs", "am"), .collapse = `|`) \%>\%
-    transmute_sd(scale, .SDcols = !is.integer(.COL)) \%>\%
+    transmute_sd(scale_undim, .SDcols = !is.integer(.COL)) \%>\%
     end_expr
 
 # The previous is quivalent to
 DT[, (whole) := lapply(.SD, as.integer), .SDcols = whole
    ][vs == 1 | am == 1,
-     lapply(.SD, scale),
+     lapply(.SD, scale_undim),
      .SDcols = names(DT)[sapply(DT, Negate(is.integer))]]
 
 # Alternative to keep all columns (*copying* non-scaled ones)
 scale_non_integers <- function(x) {
-    if (is.integer(x)) x else scale(x)
+    if (is.integer(x)) x else scale_undim(x)
 }
 
 DT \%>\%

@@ -4,12 +4,12 @@ Title: Build 'data.table' Expressions with Data Manipulation Verbs
 Description: A specialization of 'dplyr' data manipulation verbs that parse and build expressions
     which are ultimately evaluated by 'data.table', letting it handle all optimizations. A set of
     additional verbs is also provided to facilitate some common operations on a subset of the data.
-Version: 0.3.0
+Version: 0.3.1
 Depends: R (>= 3.1.0)
 Imports: methods, stats, utils, data.table (>= 1.9.8), dplyr, magrittr,
         R6, rlang (>= 0.3.1), tidyselect
 Suggests: knitr, rex, rmarkdown, testthat
-Date: 2019-08-01
+Date: 2019-09-06
 Authors@R: c(
         person("Alexis", "Sarda-Espinosa", role=c("cre", "aut"), email="alexis.sarda@gmail.com")
     )
@@ -32,11 +32,12 @@ Collate: 'DELIMITERS-chain.R' 'DELIMITERS-end_expr.R'
         'VERBS-key_by.R' 'VERBS-left_join.R' 'VERBS-max_by.R'
         'VERBS-min_by.R' 'VERBS-mutate.R' 'VERBS-mutate_join.R'
         'VERBS-mutate_sd.R' 'VERBS-order_by.R' 'VERBS-right_join.R'
-        'VERBS-select.R' 'VERBS-semi_join.R' 'VERBS-transmute.R'
-        'VERBS-transmute_sd.R' 'VERBS-where.R' 'pkg.R'
+        'VERBS-select.R' 'VERBS-semi_join.R' 'VERBS-summarize.R'
+        'VERBS-transmute.R' 'VERBS-transmute_sd.R' 'VERBS-where.R'
+        'pkg.R'
 NeedsCompilation: no
-Packaged: 2019-08-01 18:54:23 UTC; oso
+Packaged: 2019-09-06 16:47:10 UTC; oso_a
 Author: Alexis Sarda-Espinosa [cre, aut]
 Maintainer: Alexis Sarda-Espinosa <alexis.sarda@gmail.com>
 Repository: CRAN
-Date/Publication: 2019-08-02 11:10:02 UTC
+Date/Publication: 2019-09-07 11:10:02 UTC

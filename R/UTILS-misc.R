@@ -298,3 +298,31 @@ unformulate <- function(.how) {
 
     .how
 }
+
+#' @importFrom rlang call2
+#' @importFrom rlang eval_tidy
+#'
+cedta <- function(.env) {
+    .cedta <- rlang::call2(":::", "data.table", "cedta")
+    .cedta <- rlang::call2(.cedta, n = 1L)
+    rlang::eval_tidy(.cedta, env = .env)
+}
+
+#' @importFrom rlang caller_env
+#' @importFrom rlang eval_tidy
+#' @importFrom rlang warn
+#'
+try_delegate <- function(.fun_, .expr, .generic_env = rlang::caller_env()) {
+    tryCatch(
+        rlang::eval_tidy({{ .expr }}),
+        table.express.data_table_unaware_error = function(err) {
+            if (isTRUE(getOption("table.express.warn.cedta", TRUE))) {
+                rlang::warn(paste(err$message,
+                                  "Trying to dispatch to data.frame method.",
+                                  "Use options(table.express.warn.cedta = FALSE) to avoid this warning."))
+            }
+
+            do.call(NextMethod, list(.fun_), envir = .generic_env)
+        }
+    )
+}

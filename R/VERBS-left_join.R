@@ -68,6 +68,6 @@ left_join.data.table <- function(x, y, ..., allow = FALSE, .expr = FALSE) {
         lazy_ans
     }
     else {
-        end_expr.ExprBuilder(lazy_ans, .parent_env = rlang::caller_env())
+        try_delegate("left_join", end_expr.ExprBuilder(lazy_ans, .parent_env = rlang::caller_env()))
     }
 }

@@ -13,6 +13,7 @@
 #' @importFrom rlang dots_list
 #' @importFrom rlang call_name
 #' @importFrom rlang caller_env
+#' @importFrom rlang current_env
 #' @importFrom rlang env_get_list
 #' @importFrom rlang eval_tidy
 #' @importFrom rlang expr
@@ -343,15 +344,30 @@ ExprBuilder <- R6::R6Class(
                 .homonyms = "last"
             )
 
-            .expr_env <- rlang::new_environment(dots, parent = .parent_env)
-
             final_expr <- self$expr
+
             if (private$.verbose) { # nocov start
                 cat("Evaluating:\n")
                 print(final_expr)
             } # nocov end
 
-            rlang::eval_tidy(final_expr, env = .expr_env)
+            if (cedta(.parent_env)) {
+                .expr_env <- rlang::new_environment(dots, parent = .parent_env)
+                rlang::eval_tidy(final_expr, env = .expr_env)
+            }
+            else {
+                .expr_env <- rlang::new_environment(dots, parent = rlang::current_env())
+                ans <- try(rlang::eval_tidy(final_expr, env = .expr_env), silent = TRUE)
+                if (inherits(ans, "try-error")) {
+                    rlang::abort(paste("[table.express] A 'dplyr' verb dispatched from",
+                                       "a package that is *not* 'data.table' aware,",
+                                       "and the workaround didn't work."),
+                                 "table.express.data_table_unaware_error")
+                }
+                else {
+                    ans
+                }
+            }
         }
     )
 )
@@ -544,6 +560,16 @@ EBCompanion$helper_functions <- list(
             .data_mask <- rlang::new_data_mask(rlang::new_environment(.COL))
             rlang::eval_tidy(.how, .data_mask)
         })
+    },
+
+    .validating_summarize = function(...) {
+        ans <- list(...)
+        if (length(ans) > 0L && any(lengths(ans) > 1L)) {
+            stop("All summary values must have length 1, got: [",
+                 paste(names(ans), lengths(ans), sep = " of length ", collapse = ", "),
+                 "]")
+        }
+        ans
     }
 )
 

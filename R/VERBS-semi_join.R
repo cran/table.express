@@ -59,7 +59,7 @@ semi_join.ExprBuilder <- function(x, y, ..., allow = FALSE, .eager = FALSE) {
 #'
 semi_join.data.table <- function(x, y, ..., allow = FALSE, .eager = FALSE) {
     eb <- ExprBuilder$new(x)
-    y <- rlang::enexpr(y)
+    y_expr <- rlang::enexpr(y)
 
     if (.eager) {
         on <- parse_dots(TRUE, ...)
@@ -67,7 +67,7 @@ semi_join.data.table <- function(x, y, ..., allow = FALSE, .eager = FALSE) {
         where_expr <- rlang::exprs(nest_expr(
             .parse = FALSE,
             .end = FALSE,
-            inner_join(!!y, !!!on),
+            inner_join(!!y_expr, !!!on),
             frame_append(which = TRUE, allow.cartesian = !!allow),
             end_expr,
             unique
@@ -77,8 +77,8 @@ semi_join.data.table <- function(x, y, ..., allow = FALSE, .eager = FALSE) {
         lazy_ans <- eb$set_i(where_clause, FALSE)
     }
     else {
-        lazy_ans <- semi_join.ExprBuilder(eb, y = !!y, ...)
+        lazy_ans <- semi_join.ExprBuilder(eb, y = !!y_expr, ...)
     }
 
-    end_expr.ExprBuilder(lazy_ans, .parent_env = rlang::caller_env())
+    try_delegate("semi_join", end_expr.ExprBuilder(lazy_ans, .parent_env = rlang::caller_env()))
 }

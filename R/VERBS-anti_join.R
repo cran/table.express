@@ -42,6 +42,6 @@ anti_join.data.table <- function(x, ..., .expr = FALSE) {
         lazy_ans
     }
     else {
-        end_expr.ExprBuilder(lazy_ans, .parent_env = rlang::caller_env())
+        try_delegate("anti_join", end_expr.ExprBuilder(lazy_ans, .parent_env = rlang::caller_env()))
     }
 }
