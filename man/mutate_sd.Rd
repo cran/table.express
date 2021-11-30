@@ -9,13 +9,19 @@
 \usage{
 mutate_sd(.data, .SDcols, .how = identity, ...)
 
-\method{mutate_sd}{ExprBuilder}(.data, .SDcols, .how = identity, ...,
-  .pairwise = TRUE, .prefix, .suffix,
+\method{mutate_sd}{ExprBuilder}(
+  .data,
+  .SDcols,
+  .how = identity,
+  ...,
+  .pairwise = TRUE,
+  .prefix,
+  .suffix,
   .parse = getOption("table.express.parse", FALSE),
-  .chain = getOption("table.express.chain", TRUE))
+  .chain = getOption("table.express.chain", TRUE)
+)
 
-\method{mutate_sd}{EagerExprBuilder}(.data, ...,
-  .parent_env = rlang::caller_env())
+\method{mutate_sd}{EagerExprBuilder}(.data, ..., .parent_env = rlang::caller_env())
 
 \method{mutate_sd}{data.table}(.data, ...)
 }
@@ -53,7 +59,7 @@ reference, like \link{mutate-table.express}. It can serve like
 
 Additionally, \code{.SDcols} supports:
 \itemize{
-\item \link[tidyselect:select_helpers]{tidyselect::select_helpers}
+\item \link[tidyselect:language]{tidyselect::select_helpers}
 \item A predicate using the \code{.COL} pronoun that should return a single logical when \code{.COL} is
 replaced by a \emph{column} of the data.
 \item A formula using \code{.} or \code{.x} instead of the aforementioned \code{.COL}.

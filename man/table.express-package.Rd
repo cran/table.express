@@ -7,7 +7,7 @@
 \title{Building 'data.table' expressions with data manipulation verbs}
 \description{
 A specialization of \code{\link[dplyr:dplyr-package]{dplyr}} verbs, as well as a set of custom ones, that
-build expressions that can be used within a \code{\link[data.table:data.table-package]{data.table}}'s
+build expressions that can be used within a \code{\link[data.table:data.table]{data.table}}'s
 frame.
 }
 \note{
@@ -127,7 +127,7 @@ print(DT)
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://asardaes.github.io/table.express}
+  \item \url{https://asardaes.github.io/table.express/}
   \item \url{https://github.com/asardaes/table.express}
   \item Report bugs at \url{https://github.com/asardaes/table.express/issues}
 }
