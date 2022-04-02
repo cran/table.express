@@ -11,14 +11,16 @@ dplyr::mutate
 #' @rdname mutate-table.express
 #' @name mutate-table.express
 #' @export
+#' @include pkg.R
+#' @importFrom rlang call_args
 #' @importFrom rlang expr
+#' @importFrom rlang is_call
 #' @importFrom rlang quo_squash
 #' @importFrom rlang warn
 #'
 #' @template data-arg
 #' @param ... Mutation clauses.
-#' @param .sequential If `TRUE`, each expression in `...` is assigned to a separate frame in order
-#'   to enable usage of newly created columns.
+#' @eval sequential_arg_doc()
 #' @param .unquote_names Passed to [rlang::enexprs()]. Set to `FALSE` if you want to pass the single
 #'   [`:=`][data.table::set] expression.
 #' @template parse-arg
@@ -37,22 +39,33 @@ mutate.ExprBuilder <- function(.data, ..., .sequential = FALSE, .unquote_names =
                                .parse = getOption("table.express.parse", FALSE),
                                .chain = getOption("table.express.chain", TRUE))
 {
-    clauses <- parse_dots(.parse, ..., .named = TRUE, .unquote_names = .unquote_names)
+    clauses <- parse_dots(.parse, ..., .named = !.sequential, .unquote_names = .unquote_names)
 
     if (length(clauses) == 0L) {
         return(.data)
     }
-    else if (.sequential && .unquote_names) {
-        for (i in seq_along(clauses)) {
-            # keep as list with name
-            clause <- clauses[i]
-            .data <- mutate.ExprBuilder(.data, !!!clause, .sequential = FALSE, .parse = FALSE, .chain = TRUE)
+    else if (.sequential) {
+        if (!.unquote_names && length(clauses) > 1L) {
+            rlang::warn(paste("Only one expression can be provided in '...' for .unquote_names = FALSE,",
+                              "ignoring all but first."))
+
+            clauses <- clauses[1L]
+        }
+        if (rlang::is_call(clauses[[1L]], ":=")) {
+            clauses <- rlang::call_args(clauses[[1L]])
+        }
+        if (rlang::is_call(clauses[[1L]], "c") && length(clauses) == 2L) {
+            # c(...) = list(...) form
+            clause_names <- unlist(rlang::call_args(clauses[[1L]]))
+            clauses <- rlang::call_args(clauses[[2L]])
+            names(clauses) <- clause_names
         }
 
-        return(.data)
+        named_clauses <- get_named_clauses(clauses)
+        clause_rhs <- body_from_clauses(named_clauses$clauses, FALSE)
+        clause <- rlang::expr(`:=`(!!named_clauses$clause_names, !!clause_rhs))
     }
-
-    if (.unquote_names) {
+    else if (.unquote_names) {
         clause <- rlang::quo_squash(rlang::expr(
             `:=`(!!!clauses)
         ))

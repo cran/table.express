@@ -126,6 +126,33 @@ test_that("Newly created columns can be used if .sequential = TRUE.", {
         end_expr(.by_ref = FALSE)
 
     expect_identical(ans, expected)
+
+    ans <- mutate(data.table::copy(DT), `:=`(x = mpg * 2, y = x / 2), .unquote_names = FALSE, .sequential = TRUE)
+
+    expect_identical(ans, expected)
+
+    expect_warning({
+        ans <- mutate(data.table::copy(DT), c("x", "y") := list(mpg * 2, x / 2), foo = NA, .unquote_names = FALSE, .sequential = TRUE)
+    })
+
+    expect_identical(ans, expected)
+
+    expect_warning({
+        ans <- mutate(data.table::copy(DT), x = mpg * 2, y = x / 2, y * 3, .sequential = TRUE)
+    })
+
+    expect_identical(ans, expected)
+})
+
+test_that("Sequential mutation by group works.", {
+    expected <- data.table::copy(DT)[, min_mpg := min(mpg), by = list(gear)][, foo := min_mpg[1L] * 2, by = list(gear)]
+
+    ans <- DT %>%
+        (data.table::copy) %>%
+        group_by(gear) %>%
+        mutate(min_mpg = min(mpg), foo = min_mpg[1L] * 2, .sequential = TRUE)
+
+    expect_identical(ans, expected)
 })
 
 test_that("Eager versions of mutate work.", {

@@ -10,9 +10,6 @@
 #'
 #' @note
 #'
-#' Since this package's functionality is based on the \pkg{rlang} package, and \pkg{rlang} is still
-#' evolving, breaking changes may be needed in the future.
-#'
 #' Note that since version 0.3.0, it is not possible to load \pkg{table.express} and \pkg{dtplyr} at
 #' the same time, since they define the same `data.table` methods for many \pkg{dplyr} generics.
 #'
@@ -30,7 +27,8 @@
 #'
 "_PACKAGE"
 
-utils::globalVariables(c(".DT_", ".SD", ".COL"))
+# the last one is weird, CHECK says it comes from body_from_clauses, *shrug*
+utils::globalVariables(c(".DT_", ".SD", ".COL", "!<-"))
 
 #' @importFrom data.table :=
 #' @export
@@ -56,3 +54,11 @@ rlang::`!!`
 #' @export
 #'
 rlang::`!!!`
+
+sequential_arg_doc <- function() {
+    paste(
+        "@param .sequential",
+        "If ``TRUE``, each expression in ``...`` is assigned to a nested body within curly braces to allow them to use variables created by previous expressions.",
+        "The default is ``FALSE`` because enabling this may turn off some [data.table optimizations][data.table::datatable.optimize]."
+    )
+}

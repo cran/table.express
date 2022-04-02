@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function(e) {
     </style>
 
 
+
 <style type="text/css">
   code {
     white-space: pre;
@@ -333,10 +334,19 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<p>Almost all joins between 2 <code>data.table</code>s use a notation where one of them is used as <code>i</code> in a frame applied to the other, and the joining columns are specified with the <code>on</code> parameter. However, in addition to the “basic” joins, <code>data.table</code> allows for special cases like rolling joins, summarizing while joining, non-equi joins, etc. This vignette will describe the notation to apply these joins with verbs defined in <code>table.express</code>, which, like the <a href="https://asardaes.github.io/table.express/articles/table.express.html">single-table verbs</a>, build <code>data.table</code> expressions.</p>
+<p>Almost all joins between 2 <code>data.table</code>s use a notation
+where one of them is used as <code>i</code> in a frame applied to the
+other, and the joining columns are specified with the <code>on</code>
+parameter. However, in addition to the “basic” joins,
+<code>data.table</code> allows for special cases like rolling joins,
+summarizing while joining, non-equi joins, etc. This vignette will
+describe the notation to apply these joins with verbs defined in
+<code>table.express</code>, which, like the <a href="https://asardaes.github.io/table.express/articles/table.express.html">single-table
+verbs</a>, build <code>data.table</code> expressions.</p>
 <div id="basic-joins" class="section level2">
 <h2>Basic joins</h2>
-<p>We’ll consider most of the <code>dplyr</code> joining verbs in this section:</p>
+<p>We’ll consider most of the <code>dplyr</code> joining verbs in this
+section:</p>
 <ul>
 <li><code>inner_join</code></li>
 <li><code>left_join</code></li>
@@ -368,7 +378,8 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <pre><code>#&gt;    x v2 foo
 #&gt; 1: c  8   4
 #&gt; 2: b  7   2</code></pre>
-<p>The methods defined in <code>table.express</code> accept the <code>on</code> part of the expression in their ellipsis:</p>
+<p>The methods defined in <code>table.express</code> accept the
+<code>on</code> part of the expression in their ellipsis:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(B, x)</span></code></pre></div>
 <pre><code>#&gt;    x y v v2 foo
@@ -382,14 +393,25 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(B, x, <span class="at">v =</span> v2)</span></code></pre></div>
 <pre><code>#&gt;    x y v foo
 #&gt; 1: c 3 8   4</code></pre>
-<p>An important thing to note in the second example above is the order in which the columns are given, i.e. that <code>v</code> is written before <code>v2</code>, since the order is relevant for <code>data.table</code>. We can remember the correct order simply by looking at which <code>data.table</code> appears first in the expression, and knowing that said <code>data.table</code>’s columns must appear first in the <code>on</code> expressions. In this case, <code>A</code> appears before <code>B</code>, so writing <code>v2 = v</code> would not work.</p>
-<p>In order to maintain consistency in the ordering just described, <code>left_join</code> automatically swaps expression elements internally in order to build the expression:</p>
+<p>An important thing to note in the second example above is the order
+in which the columns are given, i.e. that <code>v</code> is written
+before <code>v2</code>, since the order is relevant for
+<code>data.table</code>. We can remember the correct order simply by
+looking at which <code>data.table</code> appears first in the
+expression, and knowing that said <code>data.table</code>’s columns must
+appear first in the <code>on</code> expressions. In this case,
+<code>A</code> appears before <code>B</code>, so writing
+<code>v2 = v</code> would not work.</p>
+<p>In order to maintain consistency in the ordering just described,
+<code>left_join</code> automatically swaps expression elements
+internally in order to build the expression:</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    start_expr <span class="sc">%&gt;%</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(B, x, <span class="at">v =</span> v2) <span class="sc">%T&gt;%</span></span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    print <span class="sc">%&gt;%</span></span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    end_expr</span></code></pre></div>
-<pre><code>#&gt; .DT_[.DT_0_, on = list(x, v2 = v)]</code></pre>
+<pre><code>#&gt; .DT_[.DT_0_, on = list(x, v2 = v), nomatch = , mult = , roll = , 
+#&gt;     rollends = ]</code></pre>
 <pre><code>#&gt;    x v2 foo y
 #&gt; 1: b  1  NA 1
 #&gt; 2: b  2  NA 3
@@ -400,8 +422,14 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 #&gt; 7: c  7  NA 1
 #&gt; 8: c  8   4 3
 #&gt; 9: c  9  NA 6</code></pre>
-<p>We can also see an extra <code>.DT_0_</code> pronoun in the expression. These special <code>.DT_*_</code> pronouns hold the different <code>data.table</code>s that have entered the expression so far, and are automatically assigned to the evaluation’s environment. In this case, <code>.DT_</code> holds <code>B</code> and <code>.DT_0_</code> holds <code>A</code>.</p>
-<p>No additional considerations are required to use <code>right_join</code> or <code>anti_join</code>:</p>
+<p>We can also see an extra <code>.DT_0_</code> pronoun in the
+expression. These special <code>.DT_*_</code> pronouns hold the
+different <code>data.table</code>s that have entered the expression so
+far, and are automatically assigned to the evaluation’s environment. In
+this case, <code>.DT_</code> holds <code>B</code> and
+<code>.DT_0_</code> holds <code>A</code>.</p>
+<p>No additional considerations are required to use
+<code>right_join</code> or <code>anti_join</code>:</p>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">right_join</span>(B, x, <span class="at">v =</span> v2)</span></code></pre></div>
 <pre><code>#&gt;    x  y v foo
@@ -418,7 +446,9 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 #&gt; 6: a 6 6
 #&gt; 7: c 1 7
 #&gt; 8: c 6 9</code></pre>
-<p>A <code>semi_join</code> is essentially a <code>right_join</code> with <code>nomatch = NULL</code>, and where <code>j</code> is set to <code>unique(.SD)</code>:</p>
+<p>A <code>semi_join</code> is essentially a <code>right_join</code>
+with <code>nomatch = NULL</code>, and where <code>j</code> is set to
+<code>unique(.SD)</code>:</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">setnames</span>(B, <span class="st">&quot;v2&quot;</span>, <span class="st">&quot;v&quot;</span>)</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
@@ -430,7 +460,8 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 #&gt; 4: b 1 1
 #&gt; 5: b 3 2
 #&gt; 6: b 6 3</code></pre>
-<p>Finally, <code>full_join</code> is basically a wrapper for <code>merge</code> specifying <code>all = TRUE</code>:</p>
+<p>Finally, <code>full_join</code> is basically a wrapper for
+<code>merge</code> specifying <code>all = TRUE</code>:</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">full_join</span>(B, x)</span></code></pre></div>
 <pre><code>#&gt;    x y v.x v.y foo
@@ -445,7 +476,14 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 #&gt; 9: c 6   9   8   4</code></pre>
 <div id="expression-chaining" class="section level3">
 <h3>Expression chaining</h3>
-<p>Something to keep in mind is that most joins specify <code>i</code> and <code>on</code> inside the frame, so any subsequent verbs that specify <code>j</code>, <code>by</code>, or <code>keyby</code> would still be possible. In order to enable this, many joining verbs have an <code>.expr</code> parameter that indicates that the expression should be kept, delaying evaluation until a verb that sets <code>j</code> is used. This can be useful if only a subset of the joined columns is desired:</p>
+<p>Something to keep in mind is that most joins specify <code>i</code>
+and <code>on</code> inside the frame, so any subsequent verbs that
+specify <code>j</code>, <code>by</code>, or <code>keyby</code> would
+still be possible. In order to enable this, many joining verbs have an
+<code>.expr</code> parameter that indicates that the expression should
+be kept, delaying evaluation until a verb that sets <code>j</code> is
+used. This can be useful if only a subset of the joined columns is
+desired:</p>
 <div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(B, x, <span class="at">.expr =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(x, y, foo)</span></code></pre></div>
@@ -459,7 +497,8 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 #&gt; 7: c 1   4
 #&gt; 8: c 3   4
 #&gt; 9: c 6   4</code></pre>
-<p>But, when working lazily, this would require explicit chaining for expressions that should be applied to the joined table:</p>
+<p>But, when working lazily, this would require explicit chaining for
+expressions that should be applied to the joined table:</p>
 <div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    start_expr <span class="sc">%&gt;%</span></span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(B, x) <span class="sc">%&gt;%</span></span>
@@ -479,12 +518,19 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 #&gt; 7: c  8   4  1   7
 #&gt; 8: c  8   4  4   8
 #&gt; 9: c  8   4 10   9</code></pre>
-<p>This is particularly important if the selection expressions call any function, e.g. <code>tidyselect</code> helpers or even <code>:</code> with non-numerics, because <code>data.table</code> does not support that kind of syntax for <code>j</code> in the same frame as a join.</p>
+<p>This is particularly important if the selection expressions call any
+function, e.g. <code>tidyselect</code> helpers or even <code>:</code>
+with non-numerics, because <code>data.table</code> does not support that
+kind of syntax for <code>j</code> in the same frame as a join.</p>
 </div>
 </div>
 <div id="mutating-join" class="section level2">
 <h2>Mutating join</h2>
-<p>A special <code>data.table</code> idiom is described <a href="https://stackoverflow.com/a/54313203/5793905">here as an update join</a>. In order to highlight the fact that it modifies the left-hand side table by reference, the <code>mutate_join</code> verb is defined in <code>table.express</code>. Said verb accepts the columns to be added in its <code>.SDcols</code> parameter, possibly with new names:</p>
+<p>A special <code>data.table</code> idiom is described <a href="https://stackoverflow.com/a/54313203/5793905">here as an update
+join</a>. In order to highlight the fact that it modifies the left-hand
+side table by reference, the <code>mutate_join</code> verb is defined in
+<code>table.express</code>. Said verb accepts the columns to be added in
+its <code>.SDcols</code> parameter, possibly with new names:</p>
 <div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate_join</span>(B, x, <span class="at">.SDcols =</span> <span class="fu">c</span>(<span class="st">&quot;foo&quot;</span>, <span class="at">v_from_B =</span> <span class="st">&quot;v&quot;</span>))</span>
 <span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -499,10 +545,13 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 #&gt; 7: c 1 7   4        8
 #&gt; 8: c 3 8   4        8
 #&gt; 9: c 6 9   4        8</code></pre>
-<p>A particularity of this idiom is that the number of rows from the resulting join must match the left-hand side exactly or not at all, so this won’t work:</p>
+<p>A particularity of this idiom is that the number of rows from the
+resulting join must match the left-hand side exactly or not at all, so
+this won’t work:</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>B <span class="sc">%&gt;%</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate_join</span>(A, x, <span class="at">.SDcols =</span> <span class="st">&quot;y&quot;</span>)</span></code></pre></div>
-<p>In these cases, we must either use <code>mult</code> if appropriate, or specify a summarizing expression in <code>.SDcols</code>:</p>
+<p>In these cases, we must either use <code>mult</code> if appropriate,
+or specify a summarizing expression in <code>.SDcols</code>:</p>
 <div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>B <span class="sc">%&gt;%</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate_join</span>(A, x, <span class="at">.SDcols =</span> <span class="st">&quot;y&quot;</span>, <span class="at">mult =</span> <span class="st">&quot;first&quot;</span>)</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -517,11 +566,15 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <pre><code>#&gt;    x v foo        y
 #&gt; 1: c 8   4 3.333333
 #&gt; 2: b 7   2 3.333333</code></pre>
-<p>The last example specifies <code>by = .EACHI</code> in the joining expression.</p>
+<p>The last example specifies <code>by = .EACHI</code> in the joining
+expression.</p>
 </div>
 <div id="rolling-joins" class="section level2">
 <h2>Rolling joins</h2>
-<p>A nice blog post describing rolling joins can be found at <a href="https://www.r-bloggers.com/2016/06/understanding-data-table-rolling-joins/">R-bloggers</a>, so almost the same <code>website</code> and <code>paypal</code> tables will be used for the examples below. Another short description with animated depictions can also be found <a href="https://www.gormanalysis.com/blog/r-data-table-rolling-joins/">here</a>.</p>
+<p>A nice blog post describing rolling joins can be found at <a href="https://www.r-bloggers.com/2016/06/understanding-data-table-rolling-joins/">R-bloggers</a>,
+so almost the same <code>website</code> and <code>paypal</code> tables
+will be used for the examples below. Another short description with
+animated depictions can also be found <a href="https://www.gormanalysis.com/blog/r-data-table-rolling-joins/">here</a>.</p>
 <div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(website)</span></code></pre></div>
 <pre><code>#&gt;        name  session_start_time session_id
 #&gt;  1:   Erica 2016-01-04 19:12:00          1
@@ -550,8 +603,11 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 #&gt; 6:     Mom 2015-12-02 17:58:00          6
 #&gt; 7:   Sally 2016-01-03 10:06:00          7
 #&gt; 8:   Sally 2016-01-03 10:15:00          8</code></pre>
-<p>In contrast to the blog post, no <code>join_time</code> is added to the tables. This is done on purpose in order to show what happens with the columns that are rolled.</p>
-<p>Let’s use a left rolling join to obtain the <code>session_id</code> that immediately preceded a purchase, if any:</p>
+<p>In contrast to the blog post, no <code>join_time</code> is added to
+the tables. This is done on purpose in order to show what happens with
+the columns that are rolled.</p>
+<p>Let’s use a left rolling join to obtain the <code>session_id</code>
+that immediately preceded a purchase, if any:</p>
 <div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>paypal <span class="sc">%&gt;%</span></span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(website, name, <span class="at">purchase_time =</span> session_start_time, <span class="at">roll =</span> <span class="cn">Inf</span>)</span></code></pre></div>
 <pre><code>#&gt;       name  session_start_time session_id payment_id
@@ -563,8 +619,16 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 #&gt; 6:     Mom 2015-12-02 17:58:00         NA          6
 #&gt; 7:   Sally 2016-01-03 10:06:00         14          7
 #&gt; 8:   Sally 2016-01-03 10:15:00         14          8</code></pre>
-<p>We can see that the rows returned are from the left-hand side (<code>paypal</code>), and since neither Mom nor Erica visited the website before their purchases, their <code>session_id</code> ended as <code>NA</code>.</p>
-<p>The order of the columns in the <code>on</code> expressions is the same as <a href="#basic-joins">above</a>. The tricky part is that the rolled column ended up with the name from the right-hand side, but keeping the values from the left-hand side. If we “invert” the join, the result is the same, but the rolled column’s name is now from the expression’s left-hand side.</p>
+<p>We can see that the rows returned are from the left-hand side
+(<code>paypal</code>), and since neither Mom nor Erica visited the
+website before their purchases, their <code>session_id</code> ended as
+<code>NA</code>.</p>
+<p>The order of the columns in the <code>on</code> expressions is the
+same as <a href="#basic-joins">above</a>. The tricky part is that the
+rolled column ended up with the name from the right-hand side, but
+keeping the values from the left-hand side. If we “invert” the join, the
+result is the same, but the rolled column’s name is now from the
+expression’s left-hand side.</p>
 <div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">right_join</span>(paypal, name, <span class="at">session_start_time =</span> purchase_time, <span class="at">roll =</span> <span class="cn">Inf</span>)</span></code></pre></div>
 <pre><code>#&gt;       name  session_start_time session_id payment_id
@@ -576,12 +640,22 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 #&gt; 6:     Mom 2015-12-02 17:58:00         NA          6
 #&gt; 7:   Sally 2016-01-03 10:06:00         14          7
 #&gt; 8:   Sally 2016-01-03 10:15:00         14          8</code></pre>
-<p>Note, however, that <code>roll</code> stayed equal to <code>Inf</code>. This is because even though the column order in the expressions changed, we could understand the rolling expressions as follows:</p>
+<p>Note, however, that <code>roll</code> stayed equal to
+<code>Inf</code>. This is because even though the column order in the
+expressions changed, we could understand the rolling expressions as
+follows:</p>
 <ul>
-<li>For <code>left_join</code>, the rolling column on the left is <code>purchase_time</code>, so with <code>roll = Inf</code>, the values from <code>session_start_time</code> are rolled forward onto <code>purchase_time</code> to find a match while joining.</li>
-<li>For <code>right_join</code>, the rolling column on the right is <code>purchase_time</code>, so <code>roll</code> must stay as <code>Inf</code> to keep the same semantics.</li>
+<li>For <code>left_join</code>, the rolling column on the left is
+<code>purchase_time</code>, so with <code>roll = Inf</code>, the values
+from <code>session_start_time</code> are rolled forward onto
+<code>purchase_time</code> to find a match while joining.</li>
+<li>For <code>right_join</code>, the rolling column on the right is
+<code>purchase_time</code>, so <code>roll</code> must stay as
+<code>Inf</code> to keep the same semantics.</li>
 </ul>
-<p>Now let’s say we want to keep all the rows from <code>website</code> and find the closest <code>payment_id</code> that occurred <em>after</em> the visit. This could be expressed as:</p>
+<p>Now let’s say we want to keep all the rows from <code>website</code>
+and find the closest <code>payment_id</code> that occurred
+<em>after</em> the visit. This could be expressed as:</p>
 <div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(paypal, name, <span class="at">session_start_time =</span> purchase_time, <span class="at">roll =</span> <span class="sc">-</span><span class="cn">Inf</span>)</span></code></pre></div>
 <pre><code>#&gt;        name       purchase_time payment_id session_id
@@ -601,10 +675,17 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 #&gt; 14:   Sally 2016-01-03 10:00:00          7         14
 #&gt; 15:  Vivian 2016-01-01 09:10:00         NA         15
 #&gt; 16:  Vivian 2016-01-09 02:15:00         NA         16</code></pre>
-<p>In order to simplify the meaning of <code>rollends</code> a bit, we could think of it as missing or being a single <code>TRUE</code>/<code>FALSE</code>. If it’s missing, rolling works according to the value of <code>roll</code>, otherwise:</p>
+<p>In order to simplify the meaning of <code>rollends</code> a bit, we
+could think of it as missing or being a single
+<code>TRUE</code>/<code>FALSE</code>. If it’s missing, rolling works
+according to the value of <code>roll</code>, otherwise:</p>
 <ul>
-<li>When <code>rollends = TRUE</code>, the value of <code>roll</code> is inverted <em>only</em> for those rows that would have no match otherwise.</li>
-<li>When <code>rollends = FALSE</code>, a matching roll will only occur if the column’s value falls in a gap with values both before <em>and</em> after.</li>
+<li>When <code>rollends = TRUE</code>, the value of <code>roll</code> is
+inverted <em>only</em> for those rows that would have no match
+otherwise.</li>
+<li>When <code>rollends = FALSE</code>, a matching roll will only occur
+if the column’s value falls in a gap with values both before
+<em>and</em> after.</li>
 </ul>
 <div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(paypal, name, <span class="at">session_start_time =</span> purchase_time, <span class="at">roll =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">rollends =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
@@ -644,12 +725,17 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 #&gt; 14:   Sally 2016-01-03 10:00:00         NA         14
 #&gt; 15:  Vivian 2016-01-01 09:10:00         NA         15
 #&gt; 16:  Vivian 2016-01-09 02:15:00         NA         16</code></pre>
-<p>Vivian’s <code>payment_id</code>s are always <code>NA</code> because she has never purchased anything. On the other hand, no one except Francis has visited the website both before and after a purchase.</p>
+<p>Vivian’s <code>payment_id</code>s are always <code>NA</code> because
+she has never purchased anything. On the other hand, no one except
+Francis has visited the website both before and after a purchase.</p>
 </div>
 <div id="non-equi-joins" class="section level2">
 <h2>Non-equi joins</h2>
-<p>Non-equi joins are similar to rolling joins, but instead of rolling a single row’s value, they can return several values per row.</p>
-<p>Using the same data as before, we could find <em>all</em> the <code>session_id</code>s that preceded a <code>payment_id</code>, giving “priority” to <code>paypal</code>’s rows:</p>
+<p>Non-equi joins are similar to rolling joins, but instead of rolling a
+single row’s value, they can return several values per row.</p>
+<p>Using the same data as before, we could find <em>all</em> the
+<code>session_id</code>s that preceded a <code>payment_id</code>, giving
+“priority” to <code>paypal</code>’s rows:</p>
 <div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>paypal <span class="sc">%&gt;%</span></span>
 <span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(website, name, purchase_time <span class="sc">&gt;=</span> session_start_time)</span></code></pre></div>
 <pre><code>#&gt;        name  session_start_time session_id payment_id
@@ -673,8 +759,14 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 #&gt; 18:     Mom 2015-12-02 17:58:00         NA          6
 #&gt; 19:   Sally 2016-01-03 10:06:00         14          7
 #&gt; 20:   Sally 2016-01-03 10:15:00         14          8</code></pre>
-<p>Priority above simply means that all rows from <code>paypal</code> are returned, even if they don’t have a match in <code>website</code>. Even though a column <code>session_start_time</code> appears in the result, the values contained therein are from <code>paypal</code>’s <code>purchase_time</code>.</p>
-<p>A corresponding right non-equi join would yield the same result, expecting only a different order in the columns that are part of the comparisons:</p>
+<p>Priority above simply means that all rows from <code>paypal</code>
+are returned, even if they don’t have a match in <code>website</code>.
+Even though a column <code>session_start_time</code> appears in the
+result, the values contained therein are from <code>paypal</code>’s
+<code>purchase_time</code>.</p>
+<p>A corresponding right non-equi join would yield the same result,
+expecting only a different order in the columns that are part of the
+comparisons:</p>
 <div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
 <span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">right_join</span>(paypal, name, session_start_time <span class="sc">&lt;=</span> purchase_time)</span></code></pre></div>
 <pre><code>#&gt;        name  session_start_time session_id payment_id
@@ -701,13 +793,19 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 </div>
 <div id="self-joins" class="section level2">
 <h2>Self joins</h2>
-<p>In case a self join were necessary, perhaps while using a rolling or non-equi join, the way <code>magrittr</code>’s pipe handles the <code>.</code> outside of nested calls wouldn’t allow calling a joining verb with <code>.</code> both in <code>x</code> and <code>y</code>. To work around this, the following verbs default to an eager self join when <code>y</code> is missing:</p>
+<p>In case a self join were necessary, perhaps while using a rolling or
+non-equi join, the way <code>magrittr</code>’s pipe handles the
+<code>.</code> outside of nested calls wouldn’t allow calling a joining
+verb with <code>.</code> both in <code>x</code> and <code>y</code>. To
+work around this, the following verbs default to an eager self join when
+<code>y</code> is missing:</p>
 <ul>
 <li><code>full_join</code></li>
 <li><code>left_join</code></li>
 <li><code>mutate_join</code></li>
 </ul>
-<p>As a somewhat contrived example, we could add a rolling count of weekly visits per user to the <code>website</code> data introduced <a href="#rolling-joins">above</a>:</p>
+<p>As a somewhat contrived example, we could add a rolling count of
+weekly visits per user to the <code>website</code> data introduced <a href="#rolling-joins">above</a>:</p>
 <div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
 <span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">window_start =</span> session_start_time <span class="sc">-</span> <span class="fu">as.difftime</span>(<span class="dv">7</span>, <span class="at">units =</span> <span class="st">&quot;days&quot;</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate_join</span>(, name, window_start <span class="sc">&lt;=</span> session_start_time, session_start_time <span class="sc">&gt;=</span> session_start_time,</span>
