@@ -4,12 +4,12 @@ Title: Build 'data.table' Expressions with Data Manipulation Verbs
 Description: A specialization of 'dplyr' data manipulation verbs that parse and build expressions
     which are ultimately evaluated by 'data.table', letting it handle all optimizations. A set of
     additional verbs is also provided to facilitate some common operations on a subset of the data.
-Version: 0.4.0
-Depends: R (>= 3.1.0)
+Version: 0.4.1
+Depends: R (>= 3.2.0)
 Imports: methods, stats, utils, data.table (>= 1.9.8), dplyr, magrittr,
         R6, rlang (>= 0.3.1), tidyselect
 Suggests: knitr, rex, rmarkdown, testthat
-Date: 2022-04-02
+Date: 2022-08-24
 Authors@R: c(
         person("Alexis", "Sarda-Espinosa", role=c("cre", "aut"), email="alexis.sarda@gmail.com")
     )
@@ -19,12 +19,12 @@ URL: https://asardaes.github.io/table.express/,
         https://github.com/asardaes/table.express
 Language: en-US
 Encoding: UTF-8
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
 VignetteBuilder: knitr
 Collate: 'DELIMITERS-chain.R' 'DELIMITERS-end_expr.R'
         'DELIMITERS-start_expr.R' 'R6-ExprBuilder.R'
-        'R6-EagerExprBuilder.R' 'UTILS-frame_append.R' 'UTILS-misc.R'
-        'UTILS-nest_expr.R' 'UTILS-tidyselect.R' 'VERBS-joins.R'
+        'R6-EagerExprBuilder.R' 'UTILS-frame_append.R' 'UTILS-joins.R'
+        'UTILS-misc.R' 'UTILS-nest_expr.R' 'UTILS-tidyselect.R'
         'VERBS-anti_join.R' 'VERBS-arrange.R' 'VERBS-distinct.R'
         'VERBS-filter.R' 'VERBS-filter_on.R' 'VERBS-filter_sd.R'
         'VERBS-full_join.R' 'VERBS-group_by.R' 'VERBS-inner_join.R'
@@ -34,8 +34,8 @@ Collate: 'DELIMITERS-chain.R' 'DELIMITERS-end_expr.R'
         'VERBS-select.R' 'VERBS-semi_join.R' 'VERBS-summarize.R'
         'VERBS-transmute.R' 'VERBS-transmute_sd.R' 'VERBS-where.R'
 NeedsCompilation: no
-Packaged: 2022-04-02 19:22:39 UTC; oso
+Packaged: 2022-08-24 21:55:08 UTC; oso
 Author: Alexis Sarda-Espinosa [cre, aut]
 Maintainer: Alexis Sarda-Espinosa <alexis.sarda@gmail.com>
 Repository: CRAN
-Date/Publication: 2022-04-02 19:40:02 UTC
+Date/Publication: 2022-08-24 22:10:02 UTC

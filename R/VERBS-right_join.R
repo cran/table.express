@@ -3,10 +3,11 @@
 #'
 dplyr::right_join
 
-#' @include VERBS-joins.R
+#' @include UTILS-joins.R
 #' @rdname joins
 #' @export
 #' @importFrom rlang enexpr
+#' @importFrom rlang is_missing
 #' @importFrom rlang maybe_missing
 #'
 #' @param which If `TRUE`, return the row numbers that matched in `x` instead of the result of the
@@ -18,9 +19,15 @@ dplyr::right_join
 #' lhs %>%
 #'     right_join(rhs, x)
 #'
-right_join.ExprBuilder <- function(x, y, ..., which, nomatch, mult, roll, rollends) {
+right_join.ExprBuilder <- function(x, y, ..., allow = FALSE, which, nomatch, mult, roll, rollends, .selecting, .framing) {
     y <- x$seek_and_nestroy(list(rlang::enexpr(y)))[[1L]]
-    on <- parse_dots(TRUE, ...)
+
+    on <- if (assume_dplyr_join(...)) {
+        dplyr_by_to_dots(...)
+    }
+    else {
+        parse_dots(TRUE, ...)
+    }
 
     join_extras <- list(
         nomatch = rlang::maybe_missing(nomatch),
@@ -31,20 +38,37 @@ right_join.ExprBuilder <- function(x, y, ..., which, nomatch, mult, roll, rollen
     )
 
     x <- x$set_i(y, TRUE)
-    leftright_join(x, on, join_extras)
+    eb <- leftright_join(x, on, join_extras)
+
+    if (allow) {
+        frame_append(eb, allow.cartesian = TRUE)
+    }
+
+    j <- extract_expressions(rlang::enexpr(.selecting), FALSE)
+    if (!rlang::is_missing(j)) {
+        eb$set_j(j, FALSE)
+    }
+
+    appends <- extract_expressions(rlang::enexpr(.framing), TRUE)
+    if (!rlang::is_missing(appends)) {
+        frame_append(eb, !!!appends)
+    }
+
+    eb
+
 }
 
 #' @rdname joins
 #' @export
 #' @importFrom rlang caller_env
+#' @importFrom rlang enexpr
 #'
-right_join.data.table <- function(x, ..., allow = FALSE, .expr = FALSE) {
+right_join.data.table <- function(x, y, ..., allow = FALSE, .expr = FALSE, .selecting, .framing) {
     eb <- if (.expr) EagerExprBuilder$new(x) else ExprBuilder$new(x)
-    lazy_ans <- right_join.ExprBuilder(eb, ...)
 
-    if (allow) {
-        frame_append(lazy_ans, allow.cartesian = TRUE)
-    }
+    lazy_ans <- right_join.ExprBuilder(eb, !!rlang::enexpr(y), ..., allow = allow,
+                                       .selecting = !!rlang::enexpr(.selecting),
+                                       .framing = !!rlang::enexpr(.framing))
 
     if (.expr) {
         lazy_ans

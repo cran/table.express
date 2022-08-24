@@ -27,10 +27,7 @@ parse_dots <- function(.parse = FALSE, ..., .named = FALSE, .ignore_empty = "tra
 #' @importFrom rlang is_missing
 #'
 reduce_expr <- function(expressions, init, op, ..., .parse = FALSE) {
-    # lengths() function was introduced in R 3.2.0
-    lengths <- sapply(expressions, length)
-
-    if (identical(lengths, 1L) && rlang::is_missing(expressions[[1L]][[1L]])) {
+    if (identical(lengths(expressions), 1L) && rlang::is_missing(expressions[[1L]][[1L]])) {
         init
     }
     else {
@@ -120,7 +117,8 @@ process_sdcols <- function(.data, .sdcols_quo) {
 #' @importFrom tidyselect vars_select_helpers
 #'
 is_tidyselect_call <- function(expression) {
-    rlang::is_call(expression, names(tidyselect::vars_select_helpers))
+    rlang::is_call(expression, names(tidyselect::vars_select_helpers)) ||
+        rlang::is_call(expression, names(tidyselect::vars_select_helpers), ns = "tidyselect")
 }
 
 #' @importFrom rlang as_label
@@ -368,4 +366,26 @@ body_from_clauses <- function(clauses, named_list = TRUE) {
         body_expressions,
         list_call
     ))
+}
+
+#' @importFrom rlang call_args
+#' @importFrom rlang is_call
+#' @importFrom rlang is_missing
+#' @importFrom rlang maybe_missing
+#'
+extract_expressions <- function(.expr, unlist = TRUE) {
+    if (rlang::is_missing(.expr) || rlang::is_call(.expr, "{")) {
+        rlang::maybe_missing(.expr)
+    }
+    else if (rlang::is_call(.expr, ".") || rlang::is_call(.expr, "list")) {
+        if (unlist) {
+            rlang::call_args(.expr)
+        }
+        else {
+            .expr
+        }
+    }
+    else {
+        .expr
+    }
 }
