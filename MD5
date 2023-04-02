@@ -1,5 +1,5 @@
-e1b69528f77272680352dec4c60d9a76 *DESCRIPTION
-1fd8f4f72de778b0f47564215fee03e6 *NAMESPACE
+bef32e3ee164dc680f987e94f8a78ba5 *DESCRIPTION
+e9111c10585ba5d84c2546e85c563160 *NAMESPACE
 7f67a7eb40fdf588de26f8770dc5bd16 *R/DELIMITERS-chain.R
 23782a0fe1660cbf92cc2244e42ffae5 *R/DELIMITERS-end_expr.R
 3ce2b7e22dd86041f5a0c50ed94540ef *R/DELIMITERS-start_expr.R
@@ -7,7 +7,7 @@ edfb015f4beb00b525dd6722c89d58a9 *R/R6-EagerExprBuilder.R
 b14461617abc372de527f8ca28f4e107 *R/R6-ExprBuilder.R
 6e1b9a9b2227bca94211a6499118bd45 *R/UTILS-frame_append.R
 2041b918a6a03b5d729af329940189bb *R/UTILS-joins.R
-be427b4a69cb90acde0f26dcff11e175 *R/UTILS-misc.R
+92fd3f85377a88dd04b9232c33824e7b *R/UTILS-misc.R
 c02c110254634177b042638e519d4476 *R/UTILS-nest_expr.R
 3677c4edbc6cc83ceda43b0cd01b78ce *R/UTILS-tidyselect.R
 a7a5ec058a4a425137d0d54500a161bc *R/VERBS-anti_join.R
@@ -15,7 +15,7 @@ a7a5ec058a4a425137d0d54500a161bc *R/VERBS-anti_join.R
 ee7c73959433e027be00d50b0cb967d7 *R/VERBS-distinct.R
 07544b91ffc0f7a785de83b3110cca96 *R/VERBS-filter.R
 af6b042222ea3e055e1cf951db17454d *R/VERBS-filter_on.R
-f44618e077d99382dfeaf2fc90b0e9a6 *R/VERBS-filter_sd.R
+9a3f6bd65006294b1389c4a81c298a61 *R/VERBS-filter_sd.R
 2607a66bac061f637a6cf6957c8fc685 *R/VERBS-full_join.R
 80f1888aca6f9a2a126e3d7a4236bab5 *R/VERBS-group_by.R
 f147bdcaea5474d91078eaffd5614e63 *R/VERBS-inner_join.R
@@ -35,13 +35,13 @@ b8ca44c28ca2a25d43ad0aebfcbc9e8b *R/VERBS-semi_join.R
 d91c9631500aa08782e3020b91b62fda *R/VERBS-transmute_sd.R
 556ddcddc5451a054155c27822de63c9 *R/VERBS-where.R
 0949696d69388228e4b0d21a57bf0f2f *R/pkg.R
-43720bdec67a80519db485d2e4f84ace *build/vignette.rds
+9b5eb7acf9bff727e29451749c3b84d5 *build/vignette.rds
 f454eef6ce9db6791e49c7a59c32be48 *inst/WORDLIST
 12cfce5b4cb32dec4568e8934f73bb4e *inst/_pkgdown.yml
 603bafc816f8107cf763547bcaf6c1bf *inst/doc/joins.Rmd
-66b68d31d6e178e776666f7369acbcad *inst/doc/joins.html
+64beb0ab531b0033176e60328a6ba1f0 *inst/doc/joins.html
 d9b81ec7f42d2fc29d19ac751fa32bea *inst/doc/table.express.Rmd
-8038b28c6257e7347e6b38e915193877 *inst/doc/table.express.html
+0a3c7a9006ddc4703832ff62567951c4 *inst/doc/table.express.html
 aa6c2e1559d5ab41d3b9764bb6f41c23 *man/EagerExprBuilder.Rd
 6b56de95c3750164bf1e316a2a8fa391 *man/ExprBuilder.Rd
 cbbe52ef10de582eccd09af10a465952 *man/arrange-table.express.Rd
@@ -60,7 +60,7 @@ e2971ac1a2635e2d92373e648441aec0 *man/joins.Rd
 d026773398de4d82e8b49bd0871f0407 *man/mutate_sd.Rd
 1d1c77eb6cd3eeae1d09ae52916f1e49 *man/nest_expr.Rd
 68cb119c528d8042916fdacf3a0c66ef *man/order_by-table.express.Rd
-43c46e92c876842af757a935521cee60 *man/reexports.Rd
+de805641710768751c8825c216e1dc63 *man/reexports.Rd
 37345008a428772b9e0be6cf3012fab8 *man/select-table.express.Rd
 04aee0cf75a4b0d8f7f4e62cc1347773 *man/start_expr.Rd
 888f1a32d26658af2f0bbcde59cedaec *man/summarize-table.express.Rd

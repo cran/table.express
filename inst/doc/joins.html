@@ -361,15 +361,15 @@ section:</p>
 <li><code>semi_join</code></li>
 <li><code>full_join</code></li>
 </ul>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>A <span class="ot">&lt;-</span> data.table<span class="sc">::</span><span class="fu">data.table</span>(<span class="at">x =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&quot;b&quot;</span>, <span class="st">&quot;a&quot;</span>, <span class="st">&quot;c&quot;</span>), <span class="at">each =</span> <span class="dv">3</span>),</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">6</span>),</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                            <span class="at">v =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> data.table<span class="sc">::</span><span class="fu">data.table</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="st">&quot;c&quot;</span>, <span class="st">&quot;b&quot;</span>),</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                            <span class="at">v2 =</span> <span class="dv">8</span><span class="sc">:</span><span class="dv">7</span>,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                            <span class="at">foo =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">2</span>))</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>A</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>A <span class="ot">&lt;-</span> data.table<span class="sc">::</span><span class="fu">data.table</span>(<span class="at">x =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&quot;b&quot;</span>, <span class="st">&quot;a&quot;</span>, <span class="st">&quot;c&quot;</span>), <span class="at">each =</span> <span class="dv">3</span>),</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>                            <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">6</span>),</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>                            <span class="at">v =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">9</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>B <span class="ot">&lt;-</span> data.table<span class="sc">::</span><span class="fu">data.table</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="st">&quot;c&quot;</span>, <span class="st">&quot;b&quot;</span>),</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>                            <span class="at">v2 =</span> <span class="dv">8</span><span class="sc">:</span><span class="dv">7</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>                            <span class="at">foo =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">2</span>))</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>A</span></code></pre></div>
 <pre><code>#&gt;    x y v
 #&gt; 1: b 1 1
 #&gt; 2: b 3 2
@@ -380,14 +380,14 @@ section:</p>
 #&gt; 7: c 1 7
 #&gt; 8: c 3 8
 #&gt; 9: c 6 9</code></pre>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>B</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>B</span></code></pre></div>
 <pre><code>#&gt;    x v2 foo
 #&gt; 1: c  8   4
 #&gt; 2: b  7   2</code></pre>
 <p>The methods defined in <code>table.express</code> accept the
 <code>on</code> part of the expression in their ellipsis:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(B, x)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>    <span class="fu">inner_join</span>(B, x)</span></code></pre></div>
 <pre><code>#&gt;    x y v v2 foo
 #&gt; 1: c 1 7  8   4
 #&gt; 2: c 3 8  8   4
@@ -395,8 +395,8 @@ section:</p>
 #&gt; 4: b 1 1  7   2
 #&gt; 5: b 3 2  7   2
 #&gt; 6: b 6 3  7   2</code></pre>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(B, x, <span class="at">v =</span> v2)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>    <span class="fu">inner_join</span>(B, x, <span class="at">v =</span> v2)</span></code></pre></div>
 <pre><code>#&gt;    x y v foo
 #&gt; 1: c 3 8   4</code></pre>
 <p>An important thing to note in the second example above is the order
@@ -411,11 +411,11 @@ appear first in the <code>on</code> expressions. In this case,
 <p>In order to maintain consistency in the ordering just described,
 <code>left_join</code> automatically swaps expression elements
 internally in order to build the expression:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(B, x, <span class="at">v =</span> v2) <span class="sc">%T&gt;%</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    print <span class="sc">%&gt;%</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    end_expr</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>    start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>    <span class="fu">left_join</span>(B, x, <span class="at">v =</span> v2) <span class="sc">%T&gt;%</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>    print <span class="sc">%&gt;%</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>    end_expr</span></code></pre></div>
 <pre><code>#&gt; .DT_[.DT_0_, on = list(x, v2 = v), nomatch = , mult = , roll = , 
 #&gt;     rollends = ]</code></pre>
 <pre><code>#&gt;    x v2 foo y
@@ -436,13 +436,13 @@ this case, <code>.DT_</code> holds <code>B</code> and
 <code>.DT_0_</code> holds <code>A</code>.</p>
 <p>No additional considerations are required to use
 <code>right_join</code> or <code>anti_join</code>:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">right_join</span>(B, x, <span class="at">v =</span> v2)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>    <span class="fu">right_join</span>(B, x, <span class="at">v =</span> v2)</span></code></pre></div>
 <pre><code>#&gt;    x  y v foo
 #&gt; 1: c  3 8   4
 #&gt; 2: b NA 7   2</code></pre>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">anti_join</span>(B, x, <span class="at">v =</span> v2)</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>    <span class="fu">anti_join</span>(B, x, <span class="at">v =</span> v2)</span></code></pre></div>
 <pre><code>#&gt;    x y v
 #&gt; 1: b 1 1
 #&gt; 2: b 3 2
@@ -455,10 +455,10 @@ this case, <code>.DT_</code> holds <code>B</code> and
 <p>A <code>semi_join</code> is essentially a <code>right_join</code>
 with <code>nomatch = NULL</code>, and where <code>j</code> is set to
 <code>unique(.SD)</code>:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">setnames</span>(B, <span class="st">&quot;v2&quot;</span>, <span class="st">&quot;v&quot;</span>)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">semi_join</span>(B, x)</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">setnames</span>(B, <span class="st">&quot;v2&quot;</span>, <span class="st">&quot;v&quot;</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>    <span class="fu">semi_join</span>(B, x)</span></code></pre></div>
 <pre><code>#&gt;    x y v
 #&gt; 1: c 1 7
 #&gt; 2: c 3 8
@@ -468,8 +468,8 @@ with <code>nomatch = NULL</code>, and where <code>j</code> is set to
 #&gt; 6: b 6 3</code></pre>
 <p>Finally, <code>full_join</code> is basically a wrapper for
 <code>merge</code> specifying <code>all = TRUE</code>:</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">full_join</span>(B, x)</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>    <span class="fu">full_join</span>(B, x)</span></code></pre></div>
 <pre><code>#&gt;    x y v.x v.y foo
 #&gt; 1: a 1   4  NA  NA
 #&gt; 2: a 3   5  NA  NA
@@ -490,9 +490,9 @@ still be possible. In order to enable this, many joining verbs have an
 be kept, delaying evaluation until a verb that sets <code>j</code> is
 used. This can be useful if only a subset of the joined columns is
 desired:</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(B, x, <span class="at">.expr =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(x, y, foo)</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>    <span class="fu">left_join</span>(B, x, <span class="at">.expr =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>    <span class="fu">select</span>(x, y, foo)</span></code></pre></div>
 <pre><code>#&gt;    x y foo
 #&gt; 1: b 1   2
 #&gt; 2: b 3   2
@@ -505,15 +505,15 @@ desired:</p>
 #&gt; 9: c 6   4</code></pre>
 <p>But, when working lazily, this would require explicit chaining for
 expressions that should be applied to the joined table:</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(B, x) <span class="sc">%&gt;%</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    chain <span class="sc">%&gt;%</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(x) <span class="sc">%&gt;%</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">y =</span> <span class="fu">cumsum</span>(y)) <span class="sc">%&gt;%</span></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    end_expr <span class="sc">%&gt;%</span> {</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">invisible</span>(<span class="fu">print</span>(.))</span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    }</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>    start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>    <span class="fu">left_join</span>(B, x) <span class="sc">%&gt;%</span></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>    chain <span class="sc">%&gt;%</span></span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>    <span class="fu">group_by</span>(x) <span class="sc">%&gt;%</span></span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">y =</span> <span class="fu">cumsum</span>(y)) <span class="sc">%&gt;%</span></span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a>    end_expr <span class="sc">%&gt;%</span> {</span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a>        <span class="fu">invisible</span>(<span class="fu">print</span>(.))</span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a>    }</span></code></pre></div>
 <pre><code>#&gt;    x  v foo  y i.v
 #&gt; 1: b  7   2  1   1
 #&gt; 2: b  7   2  4   2
@@ -537,10 +537,10 @@ join</a>. In order to highlight the fact that it modifies the left-hand
 side table by reference, the <code>mutate_join</code> verb is defined in
 <code>table.express</code>. Said verb accepts the columns to be added in
 its <code>.SDcols</code> parameter, possibly with new names:</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate_join</span>(B, x, <span class="at">.SDcols =</span> <span class="fu">c</span>(<span class="st">&quot;foo&quot;</span>, <span class="at">v_from_B =</span> <span class="st">&quot;v&quot;</span>))</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(A)</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a>A <span class="sc">%&gt;%</span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a>    <span class="fu">mutate_join</span>(B, x, <span class="at">.SDcols =</span> <span class="fu">c</span>(<span class="st">&quot;foo&quot;</span>, <span class="at">v_from_B =</span> <span class="st">&quot;v&quot;</span>))</span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a><span class="fu">print</span>(A)</span></code></pre></div>
 <pre><code>#&gt;    x y v foo v_from_B
 #&gt; 1: b 1 1   2        7
 #&gt; 2: b 3 2   2        7
@@ -554,21 +554,21 @@ its <code>.SDcols</code> parameter, possibly with new names:</p>
 <p>A particularity of this idiom is that the number of rows from the
 resulting join must match the left-hand side exactly or not at all, so
 this won’t work:</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>B <span class="sc">%&gt;%</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate_join</span>(A, x, <span class="at">.SDcols =</span> <span class="st">&quot;y&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a>B <span class="sc">%&gt;%</span></span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>    <span class="fu">mutate_join</span>(A, x, <span class="at">.SDcols =</span> <span class="st">&quot;y&quot;</span>)</span></code></pre></div>
 <p>In these cases, we must either use <code>mult</code> if appropriate,
 or specify a summarizing expression in <code>.SDcols</code>:</p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>B <span class="sc">%&gt;%</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate_join</span>(A, x, <span class="at">.SDcols =</span> <span class="st">&quot;y&quot;</span>, <span class="at">mult =</span> <span class="st">&quot;first&quot;</span>)</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(B)</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a>B <span class="sc">%&gt;%</span></span>
+<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a>    <span class="fu">mutate_join</span>(A, x, <span class="at">.SDcols =</span> <span class="st">&quot;y&quot;</span>, <span class="at">mult =</span> <span class="st">&quot;first&quot;</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="#cb27-4" tabindex="-1"></a><span class="fu">print</span>(B)</span></code></pre></div>
 <pre><code>#&gt;    x v foo y
 #&gt; 1: c 8   4 1
 #&gt; 2: b 7   2 1</code></pre>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>B <span class="sc">%&gt;%</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate_join</span>(A, x, <span class="at">.SDcols =</span> .(<span class="at">y =</span> <span class="fu">mean</span>(y)))</span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(B)</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a>B <span class="sc">%&gt;%</span></span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a>    <span class="fu">mutate_join</span>(A, x, <span class="at">.SDcols =</span> .(<span class="at">y =</span> <span class="fu">mean</span>(y)))</span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a><span class="fu">print</span>(B)</span></code></pre></div>
 <pre><code>#&gt;    x v foo        y
 #&gt; 1: c 8   4 3.333333
 #&gt; 2: b 7   2 3.333333</code></pre>
@@ -581,7 +581,7 @@ expression.</p>
 so almost the same <code>website</code> and <code>paypal</code> tables
 will be used for the examples below. Another short description with
 animated depictions can also be found <a href="https://www.gormanalysis.com/blog/r-data-table-rolling-joins/">here</a>.</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(website)</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="fu">print</span>(website)</span></code></pre></div>
 <pre><code>#&gt;        name  session_start_time session_id
 #&gt;  1:   Erica 2016-01-04 19:12:00          1
 #&gt;  2:   Erica 2016-01-04 21:05:00          2
@@ -599,7 +599,7 @@ animated depictions can also be found <a href="https://www.gormanalysis.com/blog
 #&gt; 14:   Sally 2016-01-03 10:00:00         14
 #&gt; 15:  Vivian 2016-01-01 09:10:00         15
 #&gt; 16:  Vivian 2016-01-09 02:15:00         16</code></pre>
-<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(paypal)</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a><span class="fu">print</span>(paypal)</span></code></pre></div>
 <pre><code>#&gt;       name       purchase_time payment_id
 #&gt; 1:   Erica 2016-01-03 08:02:00          1
 #&gt; 2: Francis 2016-01-03 19:28:00          2
@@ -614,8 +614,8 @@ the tables. This is done on purpose in order to show what happens with
 the columns that are rolled.</p>
 <p>Let’s use a left rolling join to obtain the <code>session_id</code>
 that immediately preceded a purchase, if any:</p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>paypal <span class="sc">%&gt;%</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(website, name, <span class="at">purchase_time =</span> session_start_time, <span class="at">roll =</span> <span class="cn">Inf</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a>paypal <span class="sc">%&gt;%</span></span>
+<span id="cb35-2"><a href="#cb35-2" tabindex="-1"></a>    <span class="fu">left_join</span>(website, name, <span class="at">purchase_time =</span> session_start_time, <span class="at">roll =</span> <span class="cn">Inf</span>)</span></code></pre></div>
 <pre><code>#&gt;       name  session_start_time session_id payment_id
 #&gt; 1:   Erica 2016-01-03 08:02:00         NA          1
 #&gt; 2: Francis 2016-01-03 19:28:00          4          2
@@ -635,8 +635,8 @@ rolled column ended up with the name from the right-hand side, but
 keeping the values from the left-hand side. If we “invert” the join, the
 result is the same, but the rolled column’s name is now from the
 expression’s left-hand side.</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">right_join</span>(paypal, name, <span class="at">session_start_time =</span> purchase_time, <span class="at">roll =</span> <span class="cn">Inf</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
+<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a>    <span class="fu">right_join</span>(paypal, name, <span class="at">session_start_time =</span> purchase_time, <span class="at">roll =</span> <span class="cn">Inf</span>)</span></code></pre></div>
 <pre><code>#&gt;       name  session_start_time session_id payment_id
 #&gt; 1:   Erica 2016-01-03 08:02:00         NA          1
 #&gt; 2: Francis 2016-01-03 19:28:00          4          2
@@ -662,8 +662,8 @@ from <code>session_start_time</code> are rolled forward onto
 <p>Now let’s say we want to keep all the rows from <code>website</code>
 and find the closest <code>payment_id</code> that occurred
 <em>after</em> the visit. This could be expressed as:</p>
-<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(paypal, name, <span class="at">session_start_time =</span> purchase_time, <span class="at">roll =</span> <span class="sc">-</span><span class="cn">Inf</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
+<span id="cb39-2"><a href="#cb39-2" tabindex="-1"></a>    <span class="fu">left_join</span>(paypal, name, <span class="at">session_start_time =</span> purchase_time, <span class="at">roll =</span> <span class="sc">-</span><span class="cn">Inf</span>)</span></code></pre></div>
 <pre><code>#&gt;        name       purchase_time payment_id session_id
 #&gt;  1:   Erica 2016-01-04 19:12:00         NA          1
 #&gt;  2:   Erica 2016-01-04 21:05:00         NA          2
@@ -693,8 +693,8 @@ otherwise.</li>
 if the column’s value falls in a gap with values both before
 <em>and</em> after.</li>
 </ul>
-<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(paypal, name, <span class="at">session_start_time =</span> purchase_time, <span class="at">roll =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">rollends =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
+<span id="cb41-2"><a href="#cb41-2" tabindex="-1"></a>    <span class="fu">left_join</span>(paypal, name, <span class="at">session_start_time =</span> purchase_time, <span class="at">roll =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">rollends =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <pre><code>#&gt;        name       purchase_time payment_id session_id
 #&gt;  1:   Erica 2016-01-04 19:12:00          1          1
 #&gt;  2:   Erica 2016-01-04 21:05:00          1          2
@@ -712,8 +712,8 @@ if the column’s value falls in a gap with values both before
 #&gt; 14:   Sally 2016-01-03 10:00:00          7         14
 #&gt; 15:  Vivian 2016-01-01 09:10:00         NA         15
 #&gt; 16:  Vivian 2016-01-09 02:15:00         NA         16</code></pre>
-<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(paypal, name, <span class="at">session_start_time =</span> purchase_time, <span class="at">roll =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">rollends =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
+<span id="cb43-2"><a href="#cb43-2" tabindex="-1"></a>    <span class="fu">left_join</span>(paypal, name, <span class="at">session_start_time =</span> purchase_time, <span class="at">roll =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">rollends =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 <pre><code>#&gt;        name       purchase_time payment_id session_id
 #&gt;  1:   Erica 2016-01-04 19:12:00         NA          1
 #&gt;  2:   Erica 2016-01-04 21:05:00         NA          2
@@ -742,8 +742,8 @@ single row’s value, they can return several values per row.</p>
 <p>Using the same data as before, we could find <em>all</em> the
 <code>session_id</code>s that preceded a <code>payment_id</code>, giving
 “priority” to <code>paypal</code>’s rows:</p>
-<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>paypal <span class="sc">%&gt;%</span></span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">left_join</span>(website, name, purchase_time <span class="sc">&gt;=</span> session_start_time)</span></code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" tabindex="-1"></a>paypal <span class="sc">%&gt;%</span></span>
+<span id="cb45-2"><a href="#cb45-2" tabindex="-1"></a>    <span class="fu">left_join</span>(website, name, purchase_time <span class="sc">&gt;=</span> session_start_time)</span></code></pre></div>
 <pre><code>#&gt;        name  session_start_time session_id payment_id
 #&gt;  1:   Erica 2016-01-03 08:02:00         NA          1
 #&gt;  2: Francis 2016-01-03 19:28:00          3          2
@@ -773,8 +773,8 @@ result, the values contained therein are from <code>paypal</code>’s
 <p>A corresponding right non-equi join would yield the same result,
 expecting only a different order in the columns that are part of the
 comparisons:</p>
-<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">right_join</span>(paypal, name, session_start_time <span class="sc">&lt;=</span> purchase_time)</span></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
+<span id="cb47-2"><a href="#cb47-2" tabindex="-1"></a>    <span class="fu">right_join</span>(paypal, name, session_start_time <span class="sc">&lt;=</span> purchase_time)</span></code></pre></div>
 <pre><code>#&gt;        name  session_start_time session_id payment_id
 #&gt;  1:   Erica 2016-01-03 08:02:00         NA          1
 #&gt;  2: Francis 2016-01-03 19:28:00          3          2
@@ -812,14 +812,14 @@ work around this, the following verbs default to an eager self join when
 </ul>
 <p>As a somewhat contrived example, we could add a rolling count of
 weekly visits per user to the <code>website</code> data introduced <a href="#rolling-joins">above</a>:</p>
-<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">window_start =</span> session_start_time <span class="sc">-</span> <span class="fu">as.difftime</span>(<span class="dv">7</span>, <span class="at">units =</span> <span class="st">&quot;days&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate_join</span>(, name, window_start <span class="sc">&lt;=</span> session_start_time, session_start_time <span class="sc">&gt;=</span> session_start_time,</span>
-<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">.SDcols =</span> .(<span class="at">weekly_visits =</span> .N),</span>
-<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">.by_each =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">window_start =</span> <span class="cn">NULL</span>)</span>
-<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(website)</span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" tabindex="-1"></a>website <span class="sc">%&gt;%</span></span>
+<span id="cb49-2"><a href="#cb49-2" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">window_start =</span> session_start_time <span class="sc">-</span> <span class="fu">as.difftime</span>(<span class="dv">7</span>, <span class="at">units =</span> <span class="st">&quot;days&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb49-3"><a href="#cb49-3" tabindex="-1"></a>    <span class="fu">mutate_join</span>(, name, window_start <span class="sc">&lt;=</span> session_start_time, session_start_time <span class="sc">&gt;=</span> session_start_time,</span>
+<span id="cb49-4"><a href="#cb49-4" tabindex="-1"></a>                <span class="at">.SDcols =</span> .(<span class="at">weekly_visits =</span> .N),</span>
+<span id="cb49-5"><a href="#cb49-5" tabindex="-1"></a>                <span class="at">.by_each =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb49-6"><a href="#cb49-6" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">window_start =</span> <span class="cn">NULL</span>)</span>
+<span id="cb49-7"><a href="#cb49-7" tabindex="-1"></a></span>
+<span id="cb49-8"><a href="#cb49-8" tabindex="-1"></a><span class="fu">print</span>(website)</span></code></pre></div>
 <pre><code>#&gt;        name  session_start_time session_id weekly_visits
 #&gt;  1:   Erica 2016-01-04 19:12:00          1             1
 #&gt;  2:   Erica 2016-01-04 21:05:00          2             2

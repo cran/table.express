@@ -420,11 +420,11 @@ specifying whether they should evaluate the frame or not.</li>
 </ul>
 <p>The examples here explain this in more detail with the
 <code>mtcars</code> data:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;mtcars&quot;</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>DT <span class="ot">&lt;-</span> mtcars <span class="sc">%&gt;%</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  as.data.table <span class="sc">%T&gt;%</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  print</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;mtcars&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>DT <span class="ot">&lt;-</span> mtcars <span class="sc">%&gt;%</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  as.data.table <span class="sc">%T&gt;%</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  print</span></code></pre></div>
 <pre><code>#&gt;      mpg cyl disp  hp drat    wt  qsec vs am gear carb
 #&gt;  1: 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4
 #&gt;  2: 21.0   6  160 110 3.90 2.875 17.02  0  1    4    4
@@ -462,17 +462,17 @@ process, we can either set
 expressions look like. The <code>arrange</code>/<code>order_by</code>
 verbs add an expression with <code>order</code> to the frame, and let
 <code>data.table</code> handle it as usual:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">order_by</span>(mpg, <span class="sc">-</span>cyl)</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="fu">order_by</span>(mpg, <span class="sc">-</span>cyl)</span></code></pre></div>
 <pre><code>#&gt; .DT_[order(mpg, -cyl)]</code></pre>
 <p>We see here that the built expression includes a <code>.DT_</code>
 pronoun. When the expression is evaluated, the captured
 <code>data.table</code> is assigned to the evaluation environment as
 said pronoun. When evaluating eagerly, this whole process happens in the
 background:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">order_by</span>(mpg, <span class="sc">-</span>cyl)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="fu">order_by</span>(mpg, <span class="sc">-</span>cyl)</span></code></pre></div>
 <pre><code>#&gt;      mpg cyl  disp  hp drat    wt  qsec vs am gear carb
 #&gt;  1: 10.4   8 472.0 205 2.93 5.250 17.98  0  0    3    4
 #&gt;  2: 10.4   8 460.0 215 3.00 5.424 17.82  0  0    3    4
@@ -489,13 +489,13 @@ Given that <code>data.table</code> supports modification by reference,
 these copies are necessary. For example, the following would require
 copying all columns between <code>mpg</code> and <code>disp</code>,
 since any of them could be modified by reference afterwards.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>DT[, mpg<span class="sc">:</span>disp][, cyl <span class="sc">:</span><span class="er">=</span> <span class="fu">as.integer</span>(cyl)]</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>DT[, mpg<span class="sc">:</span>disp][, cyl <span class="sc">:=</span> <span class="fu">as.integer</span>(cyl)]</span></code></pre></div>
 <p>Therefore, it might be preferable to use mutation verbs to remove
 columns that are not of interest.</p>
 <p>With that said, the <code>select</code> verb can be used as
 usual:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(mpg, am)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="fu">select</span>(mpg, am)</span></code></pre></div>
 <pre><code>#&gt;      mpg am
 #&gt;  1: 21.0  1
 #&gt;  2: 21.0  1
@@ -504,8 +504,8 @@ usual:</p>
 #&gt; 32: 21.4  1</code></pre>
 <p>To maintain consistency, even single columns are kept as
 <code>data.table</code>s:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(mpg)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="fu">select</span>(mpg)</span></code></pre></div>
 <pre><code>#&gt;      mpg
 #&gt;  1: 21.0
 #&gt;  2: 21.0
@@ -514,16 +514,16 @@ usual:</p>
 #&gt; 32: 21.4</code></pre>
 <p>Calls to <code>tidyselect</code>’s helpers or to <code>:</code> are
 handled specially internally:</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(mpg<span class="sc">:</span>disp, gear<span class="sc">:</span>carb)</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="fu">select</span>(mpg<span class="sc">:</span>disp, gear<span class="sc">:</span>carb)</span></code></pre></div>
 <pre><code>#&gt;      mpg cyl disp gear carb
 #&gt;  1: 21.0   6  160    4    4
 #&gt;  2: 21.0   6  160    4    4
 #&gt; ---                        
 #&gt; 31: 15.0   8  301    5    8
 #&gt; 32: 21.4   4  121    4    2</code></pre>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">contains</span>(<span class="st">&quot;M&quot;</span>, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">contains</span>(<span class="st">&quot;M&quot;</span>, <span class="at">ignore.case =</span> <span class="cn">TRUE</span>))</span></code></pre></div>
 <pre><code>#&gt;      mpg am
 #&gt;  1: 21.0  1
 #&gt;  2: 21.0  1
@@ -533,9 +533,9 @@ handled specially internally:</p>
 <p>Tidy evaluation and the <code>.parse</code> argument can also aid in
 cases where certain parts of the frame were computed
 programmatically:</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>selected <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;am&quot;</span>)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">!!!</span>selected, <span class="at">.parse =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>selected <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;am&quot;</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">!!!</span>selected, <span class="at">.parse =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <pre><code>#&gt;      mpg am
 #&gt;  1: 21.0  1
 #&gt;  2: 21.0  1
@@ -548,8 +548,8 @@ programmatically:</p>
 <p>The <code>transmute</code> verb simply wraps everything in its
 ellipsis in a call to <code>list</code> and assigns the expression to
 the frame’s <code>j</code>.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">foo =</span> mpg <span class="sc">*</span> <span class="dv">2</span>, <span class="at">bar =</span> <span class="fu">exp</span>(cyl))</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">foo =</span> mpg <span class="sc">*</span> <span class="dv">2</span>, <span class="at">bar =</span> <span class="fu">exp</span>(cyl))</span></code></pre></div>
 <pre><code>#&gt;      foo        bar
 #&gt;  1: 42.0  403.42879
 #&gt;  2: 42.0  403.42879
@@ -576,15 +576,15 @@ expressive, and they check whether the summary value actually has length
 <p>The <code>mutate</code> verb builds an expression with
 <code>:=</code> in order to perform assignment by reference by
 default.</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">mpg =</span> mpg <span class="sc">/</span> <span class="dv">2</span>, <span class="at">hp =</span> <span class="fu">log</span>(hp))</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">mpg =</span> mpg <span class="sc">/</span> <span class="dv">2</span>, <span class="at">hp =</span> <span class="fu">log</span>(hp))</span></code></pre></div>
 <pre><code>#&gt; .DT_[, `:=`(mpg = mpg/2, hp = log(hp))]</code></pre>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  copy <span class="sc">%&gt;%</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">mpg =</span> mpg <span class="sc">/</span> <span class="dv">2</span>, <span class="at">hp =</span> <span class="fu">log</span>(hp)) <span class="sc">%&gt;%</span> {</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">invisible</span>(<span class="fu">print</span>(.))</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  }</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a>  copy <span class="sc">%&gt;%</span></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">mpg =</span> mpg <span class="sc">/</span> <span class="dv">2</span>, <span class="at">hp =</span> <span class="fu">log</span>(hp)) <span class="sc">%&gt;%</span> {</span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a>    <span class="fu">invisible</span>(<span class="fu">print</span>(.))</span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a>  }</span></code></pre></div>
 <pre><code>#&gt;      mpg cyl disp       hp drat    wt  qsec vs am gear carb
 #&gt;  1: 10.5   6  160 4.700480 3.90 2.620 16.46  0  1    4    4
 #&gt;  2: 10.5   6  160 4.700480 3.90 2.875 17.02  0  1    4    4
@@ -593,13 +593,13 @@ default.</p>
 #&gt; 32: 10.7   4  121 4.691348 4.11 2.780 18.60  1  1    4    2</code></pre>
 <p>It can also support expressions that already contain
 <code>:=</code>:</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>new_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;x&quot;</span>, <span class="st">&quot;y&quot;</span>)</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  copy <span class="sc">%&gt;%</span></span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="sc">!!</span><span class="at">new_vars :=</span> .(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">.unquote_names =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> {</span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">invisible</span>(<span class="fu">print</span>(.))</span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>  }</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a>new_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;x&quot;</span>, <span class="st">&quot;y&quot;</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a>  copy <span class="sc">%&gt;%</span></span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="sc">!!</span><span class="at">new_vars :=</span> .(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">.unquote_names =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> {</span>
+<span id="cb24-6"><a href="#cb24-6" tabindex="-1"></a>    <span class="fu">invisible</span>(<span class="fu">print</span>(.))</span>
+<span id="cb24-7"><a href="#cb24-7" tabindex="-1"></a>  }</span></code></pre></div>
 <pre><code>#&gt;      mpg cyl disp  hp drat    wt  qsec vs am gear carb x y
 #&gt;  1: 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4 1 2
 #&gt;  2: 21.0   6  160 110 3.90 2.875 17.02  0  1    4    4 1 2
@@ -611,14 +611,14 @@ default.</p>
 <h2>Filtering rows</h2>
 <p>The <code>where</code>/<code>filter</code> verbs work with the
 <code>i</code> part of the frame:</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(vs <span class="sc">==</span> 1L, carb <span class="sc">&gt;</span> 2L)</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb26-2"><a href="#cb26-2" tabindex="-1"></a>  <span class="fu">filter</span>(vs <span class="sc">==</span> 1L, carb <span class="sc">&gt;</span> 2L)</span></code></pre></div>
 <pre><code>#&gt;     mpg cyl  disp  hp drat   wt qsec vs am gear carb
 #&gt; 1: 19.2   6 167.6 123 3.92 3.44 18.3  1  0    4    4
 #&gt; 2: 17.8   6 167.6 123 3.92 3.44 18.9  1  0    4    4</code></pre>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">where</span>(vs <span class="sc">==</span> 1L, carb <span class="sc">&gt;</span> 2L) <span class="sc">%&gt;%</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">mean_mpg =</span> <span class="fu">mean</span>(mpg))</span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb28-2"><a href="#cb28-2" tabindex="-1"></a>  <span class="fu">where</span>(vs <span class="sc">==</span> 1L, carb <span class="sc">&gt;</span> 2L) <span class="sc">%&gt;%</span></span>
+<span id="cb28-3"><a href="#cb28-3" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">mean_mpg =</span> <span class="fu">mean</span>(mpg))</span></code></pre></div>
 <pre><code>#&gt;    mean_mpg
 #&gt; 1:     18.5</code></pre>
 <p>As mentioned in the beginning, <code>where</code> can be used as a
@@ -629,36 +629,36 @@ conditions to many columns, and it can use a special pronoun
 <code>.COL</code> while specifying the expression, lambdas as formulas,
 as well as <code>tidyselect</code> helpers to choose
 <code>.SDcols</code>:</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;qsec&quot;</span>), <span class="st">`</span><span class="at">&gt;</span><span class="st">`</span>, <span class="dv">20</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb30-2"><a href="#cb30-2" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;qsec&quot;</span>), <span class="st">`</span><span class="at">&gt;</span><span class="st">`</span>, <span class="dv">20</span>)</span></code></pre></div>
 <pre><code>#&gt;     mpg cyl  disp hp drat    wt  qsec vs am gear carb
 #&gt; 1: 22.8   4 140.8 95 3.92 3.150 22.90  1  0    4    2
 #&gt; 2: 21.5   4 120.1 97 3.70 2.465 20.01  1  0    3    1</code></pre>
-<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;qsec&quot;</span>), .COL <span class="sc">&gt;</span> <span class="dv">20</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb32-2"><a href="#cb32-2" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;qsec&quot;</span>), .COL <span class="sc">&gt;</span> <span class="dv">20</span>)</span></code></pre></div>
 <pre><code>#&gt;     mpg cyl  disp hp drat    wt  qsec vs am gear carb
 #&gt; 1: 22.8   4 140.8 95 3.92 3.150 22.90  1  0    4    2
 #&gt; 2: 21.5   4 120.1 97 3.70 2.465 20.01  1  0    3    1</code></pre>
-<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="fu">contains</span>(<span class="st">&quot;m&quot;</span>), <span class="sc">~</span> .x <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb34-2"><a href="#cb34-2" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb34-3"><a href="#cb34-3" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="fu">contains</span>(<span class="st">&quot;m&quot;</span>), <span class="sc">~</span> .x <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code></pre></div>
 <pre><code>#&gt; .DT_[mpg &gt; 0 &amp; am &gt; 0]</code></pre>
-<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># like dplyr&#39;s filter_if</span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="sc">~</span> <span class="fu">is.numeric</span>(.x), .x <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" tabindex="-1"></a><span class="co"># like dplyr&#39;s filter_if</span></span>
+<span id="cb36-2"><a href="#cb36-2" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb36-3"><a href="#cb36-3" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb36-4"><a href="#cb36-4" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="sc">~</span> <span class="fu">is.numeric</span>(.x), .x <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code></pre></div>
 <pre><code>#&gt; .DT_[mpg &gt; 0 &amp; cyl &gt; 0 &amp; disp &gt; 0 &amp; hp &gt; 0 &amp; drat &gt; 0 &amp; wt &gt; 
 #&gt;     0 &amp; qsec &gt; 0 &amp; vs &gt; 0 &amp; am &gt; 0 &amp; gear &gt; 0 &amp; carb &gt; 0]</code></pre>
 <p>In order to enable combination of filtering helpers with other verbs,
 the <code>.expr</code> parameter can be used to indicate that the
 expression should be kept, delaying evaluation until a verb that sets
 <code>j</code> is used:</p>
-<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  copy <span class="sc">%&gt;%</span></span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="fu">c</span>(<span class="st">&quot;vs&quot;</span>, <span class="st">&quot;am&quot;</span>), .COL <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="at">.expr =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">some_flag =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> {</span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">invisible</span>(<span class="fu">print</span>(.))</span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>  }</span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb38-2"><a href="#cb38-2" tabindex="-1"></a>  copy <span class="sc">%&gt;%</span></span>
+<span id="cb38-3"><a href="#cb38-3" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="fu">c</span>(<span class="st">&quot;vs&quot;</span>, <span class="st">&quot;am&quot;</span>), .COL <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="at">.expr =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb38-4"><a href="#cb38-4" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">some_flag =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> {</span>
+<span id="cb38-5"><a href="#cb38-5" tabindex="-1"></a>    <span class="fu">invisible</span>(<span class="fu">print</span>(.))</span>
+<span id="cb38-6"><a href="#cb38-6" tabindex="-1"></a>  }</span></code></pre></div>
 <pre><code>#&gt;      mpg cyl disp  hp drat    wt  qsec vs am gear carb some_flag
 #&gt;  1: 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4        NA
 #&gt;  2: 21.0   6  160 110 3.90 2.875 17.02  0  1    4    4        NA
@@ -671,19 +671,19 @@ expression should be kept, delaying evaluation until a verb that sets
 that specifies the <code>on</code> argument of the frame. It accepts
 key-value pairs where each key is a column in the data, and each value
 is the corresponding value that the column should have to match:</p>
-<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter_on</span>(<span class="at">cyl =</span> <span class="dv">6</span>, <span class="at">am =</span> <span class="dv">0</span>) <span class="sc">%T&gt;%</span></span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  print <span class="sc">%&gt;%</span></span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  end_expr</span></code></pre></div>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb40-2"><a href="#cb40-2" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb40-3"><a href="#cb40-3" tabindex="-1"></a>  <span class="fu">filter_on</span>(<span class="at">cyl =</span> <span class="dv">6</span>, <span class="at">am =</span> <span class="dv">0</span>) <span class="sc">%T&gt;%</span></span>
+<span id="cb40-4"><a href="#cb40-4" tabindex="-1"></a>  print <span class="sc">%&gt;%</span></span>
+<span id="cb40-5"><a href="#cb40-5" tabindex="-1"></a>  end_expr</span></code></pre></div>
 <pre><code>#&gt; .DT_[list(6, 0), on = c(&quot;cyl&quot;, &quot;am&quot;)]</code></pre>
 <pre><code>#&gt;     mpg cyl  disp  hp drat    wt  qsec vs am gear carb
 #&gt; 1: 21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1
 #&gt; 2: 18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1
 #&gt; 3: 19.2   6 167.6 123 3.92 3.440 18.30  1  0    4    4
 #&gt; 4: 17.8   6 167.6 123 3.92 3.440 18.90  1  0    4    4</code></pre>
-<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter_on</span>(<span class="at">cyl =</span> <span class="dv">6</span>, <span class="at">am =</span> <span class="dv">0</span>, <span class="at">mult =</span> <span class="st">&quot;first&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb43-2"><a href="#cb43-2" tabindex="-1"></a>  <span class="fu">filter_on</span>(<span class="at">cyl =</span> <span class="dv">6</span>, <span class="at">am =</span> <span class="dv">0</span>, <span class="at">mult =</span> <span class="st">&quot;first&quot;</span>)</span></code></pre></div>
 <pre><code>#&gt;     mpg cyl disp  hp drat    wt  qsec vs am gear carb
 #&gt; 1: 21.4   6  258 110 3.08 3.215 19.44  1  0    3    1</code></pre>
 </div>
@@ -697,20 +697,20 @@ are provided: <code>mutate_sd</code> and <code>transmute_sd</code>.</p>
 <p>Starting with <code>mutate_sd</code>, it modifies columns in
 <code>.SDcols</code> by reference, and columns that are not part of
 <code>.SDcols</code> are kept:</p>
-<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;cyl&quot;</span>), exp)</span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(DT)</span></code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb45-2"><a href="#cb45-2" tabindex="-1"></a>  <span class="fu">mutate_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;cyl&quot;</span>), exp)</span>
+<span id="cb45-3"><a href="#cb45-3" tabindex="-1"></a></span>
+<span id="cb45-4"><a href="#cb45-4" tabindex="-1"></a><span class="fu">print</span>(DT)</span></code></pre></div>
 <pre><code>#&gt;            mpg        cyl disp  hp drat    wt  qsec vs am gear carb
 #&gt;  1: 1318815734  403.42879  160 110 3.90 2.620 16.46  0  1    4    4
 #&gt;  2: 1318815734  403.42879  160 110 3.90 2.875 17.02  0  1    4    4
 #&gt; ---                                                                
 #&gt; 31:    3269017 2980.95799  301 335 3.54 3.570 14.60  0  1    5    8
 #&gt; 32: 1967441884   54.59815  121 109 4.11 2.780 18.60  1  1    4    2</code></pre>
-<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;cyl&quot;</span>), log)</span>
-<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(DT)</span></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb47-2"><a href="#cb47-2" tabindex="-1"></a>  <span class="fu">mutate_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;cyl&quot;</span>), log)</span>
+<span id="cb47-3"><a href="#cb47-3" tabindex="-1"></a></span>
+<span id="cb47-4"><a href="#cb47-4" tabindex="-1"></a><span class="fu">print</span>(DT)</span></code></pre></div>
 <pre><code>#&gt;      mpg cyl disp  hp drat    wt  qsec vs am gear carb
 #&gt;  1: 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4
 #&gt;  2: 21.0   6  160 110 3.90 2.875 17.02  0  1    4    4
@@ -719,11 +719,11 @@ are provided: <code>mutate_sd</code> and <code>transmute_sd</code>.</p>
 #&gt; 32: 21.4   4  121 109 4.11 2.780 18.60  1  1    4    2</code></pre>
 <p>It would also be possible to remove several columns with
 <code>mutate_sd</code>:</p>
-<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  copy <span class="sc">%&gt;%</span></span>
-<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;cyl&quot;</span>), <span class="cn">NULL</span>) <span class="sc">%&gt;%</span> {</span>
-<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">invisible</span>(<span class="fu">print</span>(.))</span>
-<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>  }</span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb49-2"><a href="#cb49-2" tabindex="-1"></a>  copy <span class="sc">%&gt;%</span></span>
+<span id="cb49-3"><a href="#cb49-3" tabindex="-1"></a>  <span class="fu">mutate_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;cyl&quot;</span>), <span class="cn">NULL</span>) <span class="sc">%&gt;%</span> {</span>
+<span id="cb49-4"><a href="#cb49-4" tabindex="-1"></a>    <span class="fu">invisible</span>(<span class="fu">print</span>(.))</span>
+<span id="cb49-5"><a href="#cb49-5" tabindex="-1"></a>  }</span></code></pre></div>
 <pre><code>#&gt;     disp  hp drat    wt  qsec vs am gear carb
 #&gt;  1:  160 110 3.90 2.620 16.46  0  1    4    4
 #&gt;  2:  160 110 3.90 2.875 17.02  0  1    4    4
@@ -733,16 +733,16 @@ are provided: <code>mutate_sd</code> and <code>transmute_sd</code>.</p>
 <p>Additionally, <code>mutate_sd</code> supports the special
 <code>.COL</code> pronoun that symbolizes the column that should be
 modified, as well as lambdas as formulas:</p>
-<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># like dplyr&#39;s mutate_if</span></span>
-<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_sd</span>(<span class="fu">all</span>(.COL <span class="sc">%%</span> <span class="dv">1</span> <span class="sc">==</span> <span class="dv">0</span>), as.integer)</span></code></pre></div>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" tabindex="-1"></a><span class="co"># like dplyr&#39;s mutate_if</span></span>
+<span id="cb51-2"><a href="#cb51-2" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb51-3"><a href="#cb51-3" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb51-4"><a href="#cb51-4" tabindex="-1"></a>  <span class="fu">mutate_sd</span>(<span class="fu">all</span>(.COL <span class="sc">%%</span> <span class="dv">1</span> <span class="sc">==</span> <span class="dv">0</span>), as.integer)</span></code></pre></div>
 <pre><code>#&gt; .DT_[, `:=`(c(&quot;cyl&quot;, &quot;hp&quot;, &quot;vs&quot;, &quot;am&quot;, &quot;gear&quot;, &quot;carb&quot;), lapply(.SD, 
 #&gt;     as.integer)), .SDcols = c(&quot;cyl&quot;, &quot;hp&quot;, &quot;vs&quot;, &quot;am&quot;, &quot;gear&quot;, 
 #&gt; &quot;carb&quot;)]</code></pre>
-<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_sd</span>(<span class="sc">~</span> <span class="fu">all</span>(.x <span class="sc">%%</span> <span class="dv">1</span> <span class="sc">==</span> <span class="dv">0</span>), as.integer)</span></code></pre></div>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb53-2"><a href="#cb53-2" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb53-3"><a href="#cb53-3" tabindex="-1"></a>  <span class="fu">mutate_sd</span>(<span class="sc">~</span> <span class="fu">all</span>(.x <span class="sc">%%</span> <span class="dv">1</span> <span class="sc">==</span> <span class="dv">0</span>), as.integer)</span></code></pre></div>
 <pre><code>#&gt; .DT_[, `:=`(c(&quot;cyl&quot;, &quot;hp&quot;, &quot;vs&quot;, &quot;am&quot;, &quot;gear&quot;, &quot;carb&quot;), lapply(.SD, 
 #&gt;     as.integer)), .SDcols = c(&quot;cyl&quot;, &quot;hp&quot;, &quot;vs&quot;, &quot;am&quot;, &quot;gear&quot;, 
 #&gt; &quot;carb&quot;)]</code></pre>
@@ -750,45 +750,45 @@ modified, as well as lambdas as formulas:</p>
 reference, and supports special expressions to “build” what is chosen as
 <code>.SDcols</code>. These expressions can use <code>tidyselect</code>
 helpers, as well as another special pronoun: <code>.COLNAME</code>:</p>
-<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">starts_with</span>(<span class="st">&quot;d&quot;</span>), .COL <span class="sc">*</span> <span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb55-2"><a href="#cb55-2" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">starts_with</span>(<span class="st">&quot;d&quot;</span>), .COL <span class="sc">*</span> <span class="dv">2</span>)</span></code></pre></div>
 <pre><code>#&gt;     disp drat
 #&gt;  1:  320 7.80
 #&gt;  2:  320 7.80
 #&gt; ---          
 #&gt; 31:  602 7.08
 #&gt; 32:  242 8.22</code></pre>
-<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">grepl</span>(<span class="st">&quot;^d&quot;</span>, .COLNAME), .COL <span class="sc">*</span> <span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb57-2"><a href="#cb57-2" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">grepl</span>(<span class="st">&quot;^d&quot;</span>, .COLNAME), .COL <span class="sc">*</span> <span class="dv">2</span>)</span></code></pre></div>
 <pre><code>#&gt;     disp drat
 #&gt;  1:  320 7.80
 #&gt;  2:  320 7.80
 #&gt; ---          
 #&gt; 31:  602 7.08
 #&gt; 32:  242 8.22</code></pre>
-<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co"># like dplyr&#39;s transmute_if</span></span>
-<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="sc">~</span> <span class="fu">is.numeric</span>(.x), <span class="sc">~</span> .x <span class="sc">*</span> <span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" tabindex="-1"></a><span class="co"># like dplyr&#39;s transmute_if</span></span>
+<span id="cb59-2"><a href="#cb59-2" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb59-3"><a href="#cb59-3" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb59-4"><a href="#cb59-4" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="sc">~</span> <span class="fu">is.numeric</span>(.x), <span class="sc">~</span> .x <span class="sc">*</span> <span class="dv">2</span>)</span></code></pre></div>
 <pre><code>#&gt; .DT_[, .transmute_matching(.SD, .which = rlang::quo(~is.numeric(.x)), 
 #&gt;     .hows = rlang::quos(~.x * 2))]</code></pre>
 <p>Both verbs also support a list of functions for multiple
 transformations, but <code>mutate_sd</code> performs pairwise
 transformations by default, whereas <code>transmute_sd</code> performs
 all combinations:</p>
-<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>  copy <span class="sc">%&gt;%</span></span>
-<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate_sd</span>(<span class="fu">contains</span>(<span class="st">&quot;m&quot;</span>), .(round, <span class="sc">-</span>1L)) <span class="sc">%&gt;%</span> {</span>
-<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">invisible</span>(<span class="fu">print</span>(.))</span>
-<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a>  }</span></code></pre></div>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb61-2"><a href="#cb61-2" tabindex="-1"></a>  copy <span class="sc">%&gt;%</span></span>
+<span id="cb61-3"><a href="#cb61-3" tabindex="-1"></a>  <span class="fu">mutate_sd</span>(<span class="fu">contains</span>(<span class="st">&quot;m&quot;</span>), .(round, <span class="sc">-</span>1L)) <span class="sc">%&gt;%</span> {</span>
+<span id="cb61-4"><a href="#cb61-4" tabindex="-1"></a>    <span class="fu">invisible</span>(<span class="fu">print</span>(.))</span>
+<span id="cb61-5"><a href="#cb61-5" tabindex="-1"></a>  }</span></code></pre></div>
 <pre><code>#&gt;     mpg cyl disp  hp drat    wt  qsec vs am gear carb
 #&gt;  1:  21   6  160 110 3.90 2.620 16.46  0 -1    4    4
 #&gt;  2:  21   6  160 110 3.90 2.875 17.02  0 -1    4    4
 #&gt; ---                                                  
 #&gt; 31:  15   8  301 335 3.54 3.570 14.60  0 -1    5    8
 #&gt; 32:  21   4  121 109 4.11 2.780 18.60  1 -1    4    2</code></pre>
-<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">contains</span>(<span class="st">&quot;m&quot;</span>), .(min, max, mean))</span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb63-2"><a href="#cb63-2" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">contains</span>(<span class="st">&quot;m&quot;</span>), .(min, max, mean))</span></code></pre></div>
 <pre><code>#&gt;    min.mpg min.am max.mpg max.am mean.mpg mean.am
 #&gt; 1:    10.4      0    33.9      1 20.09062 0.40625</code></pre>
 </div>
@@ -797,18 +797,18 @@ all combinations:</p>
 <p>Since <code>data.table</code> already supports this by means of its
 <code>by</code> parameter, the <code>group_by</code> verb simply parses
 its input and assigns it accordingly:</p>
-<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(gear) <span class="sc">%&gt;%</span></span>
-<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(.N)</span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb65-2"><a href="#cb65-2" tabindex="-1"></a>  <span class="fu">group_by</span>(gear) <span class="sc">%&gt;%</span></span>
+<span id="cb65-3"><a href="#cb65-3" tabindex="-1"></a>  <span class="fu">select</span>(.N)</span></code></pre></div>
 <pre><code>#&gt;    gear  N
 #&gt; 1:    4 12
 #&gt; 2:    3 15
 #&gt; 3:    5  5</code></pre>
 <p>The <code>key_by</code> verb does the same but sets the key of the
 input in order to sort:</p>
-<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">key_by</span>(gear) <span class="sc">%&gt;%</span></span>
-<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(.N)</span></code></pre></div>
+<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb67-2"><a href="#cb67-2" tabindex="-1"></a>  <span class="fu">key_by</span>(gear) <span class="sc">%&gt;%</span></span>
+<span id="cb67-3"><a href="#cb67-3" tabindex="-1"></a>  <span class="fu">select</span>(.N)</span></code></pre></div>
 <pre><code>#&gt;    gear  N
 #&gt; 1:    3 15
 #&gt; 2:    4 12
@@ -832,21 +832,21 @@ are set to <code>TRUE</code>.</p>
 <li><code>unique(.SD)</code> with specific <code>.SDcols</code> if
 <code>.keep = FALSE</code>.</li>
 </ul>
-<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(vs, am)</span></code></pre></div>
+<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb69-2"><a href="#cb69-2" tabindex="-1"></a>  <span class="fu">distinct</span>(vs, am)</span></code></pre></div>
 <pre><code>#&gt;    vs am  mpg cyl disp  hp drat    wt  qsec gear carb
 #&gt; 1:  0  1 21.0   6  160 110 3.90 2.620 16.46    4    4
 #&gt; 2:  1  1 22.8   4  108  93 3.85 2.320 18.61    4    1
 #&gt; 3:  1  0 21.4   6  258 110 3.08 3.215 19.44    3    1
 #&gt; 4:  0  0 18.7   8  360 175 3.15 3.440 17.02    3    2</code></pre>
-<div class="sourceCode" id="cb71"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(<span class="at">vsam =</span> vs <span class="sc">+</span> am, <span class="at">.keep =</span> <span class="fu">names</span>(DT))</span></code></pre></div>
+<div class="sourceCode" id="cb71"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb71-2"><a href="#cb71-2" tabindex="-1"></a>  <span class="fu">distinct</span>(<span class="at">vsam =</span> vs <span class="sc">+</span> am, <span class="at">.keep =</span> <span class="fu">names</span>(DT))</span></code></pre></div>
 <pre><code>#&gt;    vsam  mpg cyl disp  hp drat   wt  qsec vs am gear carb
 #&gt; 1:    1 21.0   6  160 110 3.90 2.62 16.46  0  1    4    4
 #&gt; 2:    2 22.8   4  108  93 3.85 2.32 18.61  1  1    4    1
 #&gt; 3:    0 18.7   8  360 175 3.15 3.44 17.02  0  0    3    2</code></pre>
-<div class="sourceCode" id="cb73"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(vs, am, <span class="at">.keep =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb73"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb73-2"><a href="#cb73-2" tabindex="-1"></a>  <span class="fu">distinct</span>(vs, am, <span class="at">.keep =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 <pre><code>#&gt;    vs am
 #&gt; 1:  0  1
 #&gt; 2:  1  1
@@ -868,12 +868,12 @@ used inside a supported verb, it <a href="#eager-verbs">eagerly</a>
 builds a functional chain with <code>%&gt;%</code>, where the currently
 captured <code>data.table</code> enters as <code>.</code></p>
 <p>For example, the linked idiom could be expressed as:</p>
-<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">start_expr</span>(<span class="at">.verbose =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">where</span>(<span class="fu">nest_expr</span>(<span class="at">.start =</span> <span class="cn">FALSE</span>, {</span>
-<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a>    .[, .I[mpg <span class="sc">==</span> <span class="fu">max</span>(mpg)], by <span class="ot">=</span> vs]<span class="sc">$</span>V1</span>
-<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a>  })) <span class="sc">%&gt;%</span></span>
-<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a>  end_expr</span></code></pre></div>
+<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb75-2"><a href="#cb75-2" tabindex="-1"></a>  <span class="fu">start_expr</span>(<span class="at">.verbose =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb75-3"><a href="#cb75-3" tabindex="-1"></a>  <span class="fu">where</span>(<span class="fu">nest_expr</span>(<span class="at">.start =</span> <span class="cn">FALSE</span>, {</span>
+<span id="cb75-4"><a href="#cb75-4" tabindex="-1"></a>    .[, .I[mpg <span class="sc">==</span> <span class="fu">max</span>(mpg)], by <span class="ot">=</span> vs]<span class="sc">$</span>V1</span>
+<span id="cb75-5"><a href="#cb75-5" tabindex="-1"></a>  })) <span class="sc">%&gt;%</span></span>
+<span id="cb75-6"><a href="#cb75-6" tabindex="-1"></a>  end_expr</span></code></pre></div>
 <pre><code>#&gt; Nesting the result of evaluating the following functional chain:
 #&gt; .DT_ %&gt;% {
 #&gt;     .[, .I[mpg == max(mpg)], by = vs]$V1
@@ -897,17 +897,17 @@ new frame whenever they want to define one of
 expression’s frame has already specified it; otherwise they add to the
 current frame. More complex expressions are thus supported by
 automatically chaining <code>data.table</code> frames:</p>
-<div class="sourceCode" id="cb78"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">mean_mpg =</span> <span class="fu">mean</span>(mpg)) <span class="sc">%&gt;%</span></span>
-<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">where</span>(hp <span class="sc">&gt;</span> 50L) <span class="sc">%&gt;%</span></span>
-<span id="cb78-5"><a href="#cb78-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(vs, am, gear) <span class="sc">%&gt;%</span></span>
-<span id="cb78-6"><a href="#cb78-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">order_by</span>(gear, <span class="sc">-</span>vs, am) <span class="sc">%&gt;%</span></span>
-<span id="cb78-7"><a href="#cb78-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(mean_mpg <span class="sc">&gt;</span> <span class="dv">20</span>) <span class="sc">%T&gt;%</span></span>
-<span id="cb78-8"><a href="#cb78-8" aria-hidden="true" tabindex="-1"></a>  print <span class="sc">%&gt;%</span></span>
-<span id="cb78-9"><a href="#cb78-9" aria-hidden="true" tabindex="-1"></a>  end_expr <span class="sc">%&gt;%</span> {</span>
-<span id="cb78-10"><a href="#cb78-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">invisible</span>(<span class="fu">print</span>(., <span class="at">nrows =</span> 10L))</span>
-<span id="cb78-11"><a href="#cb78-11" aria-hidden="true" tabindex="-1"></a>  }</span></code></pre></div>
+<div class="sourceCode" id="cb78"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb78-2"><a href="#cb78-2" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb78-3"><a href="#cb78-3" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">mean_mpg =</span> <span class="fu">mean</span>(mpg)) <span class="sc">%&gt;%</span></span>
+<span id="cb78-4"><a href="#cb78-4" tabindex="-1"></a>  <span class="fu">where</span>(hp <span class="sc">&gt;</span> 50L) <span class="sc">%&gt;%</span></span>
+<span id="cb78-5"><a href="#cb78-5" tabindex="-1"></a>  <span class="fu">group_by</span>(vs, am, gear) <span class="sc">%&gt;%</span></span>
+<span id="cb78-6"><a href="#cb78-6" tabindex="-1"></a>  <span class="fu">order_by</span>(gear, <span class="sc">-</span>vs, am) <span class="sc">%&gt;%</span></span>
+<span id="cb78-7"><a href="#cb78-7" tabindex="-1"></a>  <span class="fu">filter</span>(mean_mpg <span class="sc">&gt;</span> <span class="dv">20</span>) <span class="sc">%T&gt;%</span></span>
+<span id="cb78-8"><a href="#cb78-8" tabindex="-1"></a>  print <span class="sc">%&gt;%</span></span>
+<span id="cb78-9"><a href="#cb78-9" tabindex="-1"></a>  end_expr <span class="sc">%&gt;%</span> {</span>
+<span id="cb78-10"><a href="#cb78-10" tabindex="-1"></a>    <span class="fu">invisible</span>(<span class="fu">print</span>(., <span class="at">nrows =</span> 10L))</span>
+<span id="cb78-11"><a href="#cb78-11" tabindex="-1"></a>  }</span></code></pre></div>
 <pre><code>#&gt; .DT_[hp &gt; 50L, .select_matching(, mean_mpg = mean(mpg), .negate = FALSE), 
 #&gt;     by = list(vs, am, gear)][order(gear, -vs, am)][mean_mpg &gt; 
 #&gt;     20]
@@ -926,19 +926,19 @@ warning being shown whenever a part of the query is replaced.</p>
 <p>The automatic chaining mentioned above is enough in most situations.
 For example the following chains lead to the same result, and therefore
 have the same semantics:</p>
-<div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a>DT[mpg <span class="sc">&gt;</span> <span class="dv">20</span>, mpg <span class="sc">*</span> <span class="dv">2</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb80"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1" tabindex="-1"></a>DT[mpg <span class="sc">&gt;</span> <span class="dv">20</span>, mpg <span class="sc">*</span> <span class="dv">2</span>]</span></code></pre></div>
 <pre><code>#&gt;  [1] 42.0 42.0 45.6 42.8 48.8 45.6 64.8 60.8 67.8 43.0 54.6 52.0 60.8 42.8</code></pre>
-<div class="sourceCode" id="cb82"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>DT[mpg <span class="sc">&gt;</span> <span class="dv">20</span>][, mpg <span class="sc">*</span> <span class="dv">2</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb82"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" tabindex="-1"></a>DT[mpg <span class="sc">&gt;</span> <span class="dv">20</span>][, mpg <span class="sc">*</span> <span class="dv">2</span>]</span></code></pre></div>
 <pre><code>#&gt;  [1] 42.0 42.0 45.6 42.8 48.8 45.6 64.8 60.8 67.8 43.0 54.6 52.0 60.8 42.8</code></pre>
 <p>However, these two chains have different semantics:</p>
-<div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>DT[, .(<span class="at">mpg =</span> mpg <span class="sc">*</span> <span class="dv">2</span>)][mpg <span class="sc">&gt;</span> <span class="dv">40</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb84"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1" tabindex="-1"></a>DT[, .(<span class="at">mpg =</span> mpg <span class="sc">*</span> <span class="dv">2</span>)][mpg <span class="sc">&gt;</span> <span class="dv">40</span>]</span></code></pre></div>
 <pre><code>#&gt;      mpg
 #&gt;  1: 42.0
 #&gt;  2: 42.0
 #&gt; ---     
 #&gt; 13: 60.8
 #&gt; 14: 42.8</code></pre>
-<div class="sourceCode" id="cb86"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a>DT[mpg <span class="sc">&gt;</span> <span class="dv">40</span>, .(<span class="at">mpg =</span> mpg <span class="sc">*</span> <span class="dv">2</span>)]</span></code></pre></div>
+<div class="sourceCode" id="cb86"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" tabindex="-1"></a>DT[mpg <span class="sc">&gt;</span> <span class="dv">40</span>, .(<span class="at">mpg =</span> mpg <span class="sc">*</span> <span class="dv">2</span>)]</span></code></pre></div>
 <pre><code>#&gt; Empty data.table (0 rows and 1 cols): mpg</code></pre>
 <p>As mentioned <a href="#expression-delimiters">above</a>,
 <code>chain</code> can be used to chain expressions by evaluating the
@@ -946,20 +946,20 @@ current one with <code>end_expr</code>, and immediately capturing the
 resulting <code>data.table</code> to start building a new expression.
 This can be helpful in situations where automatic chaining (or lack
 thereof) can lead to a change in the expression’s semantics:</p>
-<div class="sourceCode" id="cb88"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb88-3"><a href="#cb88-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">mpg =</span> mpg <span class="sc">*</span> <span class="dv">2</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb88-4"><a href="#cb88-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(mpg <span class="sc">&gt;</span> <span class="dv">40</span>) <span class="sc">%T&gt;%</span></span>
-<span id="cb88-5"><a href="#cb88-5" aria-hidden="true" tabindex="-1"></a>  print <span class="sc">%&gt;%</span></span>
-<span id="cb88-6"><a href="#cb88-6" aria-hidden="true" tabindex="-1"></a>  end_expr</span></code></pre></div>
+<div class="sourceCode" id="cb88"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb88-2"><a href="#cb88-2" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb88-3"><a href="#cb88-3" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">mpg =</span> mpg <span class="sc">*</span> <span class="dv">2</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb88-4"><a href="#cb88-4" tabindex="-1"></a>  <span class="fu">filter</span>(mpg <span class="sc">&gt;</span> <span class="dv">40</span>) <span class="sc">%T&gt;%</span></span>
+<span id="cb88-5"><a href="#cb88-5" tabindex="-1"></a>  print <span class="sc">%&gt;%</span></span>
+<span id="cb88-6"><a href="#cb88-6" tabindex="-1"></a>  end_expr</span></code></pre></div>
 <pre><code>#&gt; .DT_[mpg &gt; 40, list(mpg = mpg * 2)]</code></pre>
 <pre><code>#&gt; Empty data.table (0 rows and 1 cols): mpg</code></pre>
-<div class="sourceCode" id="cb91"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb91-2"><a href="#cb91-2" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb91-3"><a href="#cb91-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">mpg =</span> mpg <span class="sc">*</span> <span class="dv">2</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb91-4"><a href="#cb91-4" aria-hidden="true" tabindex="-1"></a>  chain <span class="sc">%&gt;%</span></span>
-<span id="cb91-5"><a href="#cb91-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(mpg <span class="sc">&gt;</span> <span class="dv">40</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb91-6"><a href="#cb91-6" aria-hidden="true" tabindex="-1"></a>  end_expr</span></code></pre></div>
+<div class="sourceCode" id="cb91"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb91-2"><a href="#cb91-2" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb91-3"><a href="#cb91-3" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">mpg =</span> mpg <span class="sc">*</span> <span class="dv">2</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb91-4"><a href="#cb91-4" tabindex="-1"></a>  chain <span class="sc">%&gt;%</span></span>
+<span id="cb91-5"><a href="#cb91-5" tabindex="-1"></a>  <span class="fu">filter</span>(mpg <span class="sc">&gt;</span> <span class="dv">40</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb91-6"><a href="#cb91-6" tabindex="-1"></a>  end_expr</span></code></pre></div>
 <pre><code>#&gt;      mpg
 #&gt;  1: 42.0
 #&gt;  2: 42.0
@@ -991,30 +991,30 @@ working lazily:</p>
 </ul>
 <p>This can lead to unexpected results if we don’t keep in mind the
 expression that is built:</p>
-<div class="sourceCode" id="cb93"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>DT[, mpg<span class="sc">:</span>disp]</span></code></pre></div>
+<div class="sourceCode" id="cb93"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1" tabindex="-1"></a>DT[, mpg<span class="sc">:</span>disp]</span></code></pre></div>
 <pre><code>#&gt;      mpg cyl disp
 #&gt;  1: 21.0   6  160
 #&gt;  2: 21.0   6  160
 #&gt; ---              
 #&gt; 31: 15.0   8  301
 #&gt; 32: 21.4   4  121</code></pre>
-<div class="sourceCode" id="cb95"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb95-2"><a href="#cb95-2" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb95-3"><a href="#cb95-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(mpg<span class="sc">:</span>disp) <span class="sc">%&gt;%</span></span>
-<span id="cb95-4"><a href="#cb95-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">ans =</span> <span class="fu">sqrt</span>(mpg)) <span class="sc">%&gt;%</span></span>
-<span id="cb95-5"><a href="#cb95-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="fu">contains</span>(<span class="st">&quot;m&quot;</span>), .COL <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb95"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb95-2"><a href="#cb95-2" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb95-3"><a href="#cb95-3" tabindex="-1"></a>  <span class="fu">select</span>(mpg<span class="sc">:</span>disp) <span class="sc">%&gt;%</span></span>
+<span id="cb95-4"><a href="#cb95-4" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">ans =</span> <span class="fu">sqrt</span>(mpg)) <span class="sc">%&gt;%</span></span>
+<span id="cb95-5"><a href="#cb95-5" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="fu">contains</span>(<span class="st">&quot;m&quot;</span>), .COL <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code></pre></div>
 <pre><code>#&gt; .DT_[, .select_matching(.SD, mpg:disp, .negate = FALSE)][mpg &gt; 
 #&gt;     0 &amp; am &gt; 0, list(ans = sqrt(mpg))]</code></pre>
 <p>The <code>select</code> gets rid of <code>am</code>, but
 <code>filter_sd</code> sees the columns of <code>DT</code> before any
 expression has been evaluated. Explicit chaining can help in these
 cases, capturing intermediate results:</p>
-<div class="sourceCode" id="cb97"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb97-2"><a href="#cb97-2" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb97-3"><a href="#cb97-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(mpg<span class="sc">:</span>disp) <span class="sc">%&gt;%</span></span>
-<span id="cb97-4"><a href="#cb97-4" aria-hidden="true" tabindex="-1"></a>  chain <span class="sc">%&gt;%</span></span>
-<span id="cb97-5"><a href="#cb97-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">ans =</span> <span class="fu">sqrt</span>(mpg)) <span class="sc">%&gt;%</span></span>
-<span id="cb97-6"><a href="#cb97-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="fu">contains</span>(<span class="st">&quot;m&quot;</span>), .COL <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb97"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb97-1"><a href="#cb97-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb97-2"><a href="#cb97-2" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb97-3"><a href="#cb97-3" tabindex="-1"></a>  <span class="fu">select</span>(mpg<span class="sc">:</span>disp) <span class="sc">%&gt;%</span></span>
+<span id="cb97-4"><a href="#cb97-4" tabindex="-1"></a>  chain <span class="sc">%&gt;%</span></span>
+<span id="cb97-5"><a href="#cb97-5" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">ans =</span> <span class="fu">sqrt</span>(mpg)) <span class="sc">%&gt;%</span></span>
+<span id="cb97-6"><a href="#cb97-6" tabindex="-1"></a>  <span class="fu">filter_sd</span>(<span class="fu">contains</span>(<span class="st">&quot;m&quot;</span>), .COL <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code></pre></div>
 <pre><code>#&gt; .DT_[mpg &gt; 0, list(ans = sqrt(mpg))]</code></pre>
 </div>
 </div>
@@ -1030,13 +1030,13 @@ possible. The verbs try to stick to this principle, but in order to
 build a simple output expression, they also require a simple input.</p>
 <p>Let us illustrate this point with <code>transmute_sd</code>, which
 can be used to compute summaries:</p>
-<div class="sourceCode" id="cb99"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb99-2"><a href="#cb99-2" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb99-3"><a href="#cb99-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(am, vs) <span class="sc">%&gt;%</span></span>
-<span id="cb99-4"><a href="#cb99-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;disp&quot;</span>), mean) <span class="sc">%&gt;%</span></span>
-<span id="cb99-5"><a href="#cb99-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">frame_append</span>(<span class="at">verbose =</span> <span class="cn">TRUE</span>) <span class="sc">%T&gt;%</span></span>
-<span id="cb99-6"><a href="#cb99-6" aria-hidden="true" tabindex="-1"></a>  print <span class="sc">%&gt;%</span></span>
-<span id="cb99-7"><a href="#cb99-7" aria-hidden="true" tabindex="-1"></a>  end_expr</span></code></pre></div>
+<div class="sourceCode" id="cb99"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb99-1"><a href="#cb99-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb99-2"><a href="#cb99-2" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb99-3"><a href="#cb99-3" tabindex="-1"></a>  <span class="fu">group_by</span>(am, vs) <span class="sc">%&gt;%</span></span>
+<span id="cb99-4"><a href="#cb99-4" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;disp&quot;</span>), mean) <span class="sc">%&gt;%</span></span>
+<span id="cb99-5"><a href="#cb99-5" tabindex="-1"></a>  <span class="fu">frame_append</span>(<span class="at">verbose =</span> <span class="cn">TRUE</span>) <span class="sc">%T&gt;%</span></span>
+<span id="cb99-6"><a href="#cb99-6" tabindex="-1"></a>  print <span class="sc">%&gt;%</span></span>
+<span id="cb99-7"><a href="#cb99-7" tabindex="-1"></a>  end_expr</span></code></pre></div>
 <pre><code>#&gt; .DT_[, c(lapply(.SD, mean)), by = list(am, vs), .SDcols = c(c(&quot;mpg&quot;, 
 #&gt;     &quot;disp&quot;)), verbose = TRUE]
 #&gt; Finding groups using forderv ... forder.c received 32 rows and 2 columns
@@ -1064,29 +1064,29 @@ can be used to compute summaries:</p>
 just a bit, without affecting its semantics, still hinders
 <code>data.table</code>’s ability to recognize cases it can
 optimize:</p>
-<div class="sourceCode" id="cb102"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb102-1"><a href="#cb102-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb102-2"><a href="#cb102-2" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb102-3"><a href="#cb102-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(am, vs) <span class="sc">%&gt;%</span></span>
-<span id="cb102-4"><a href="#cb102-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;disp&quot;</span>), <span class="fu">mean</span>(.COL)) <span class="sc">%&gt;%</span></span>
-<span id="cb102-5"><a href="#cb102-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">frame_append</span>(<span class="at">verbose =</span> <span class="cn">TRUE</span>) <span class="sc">%T&gt;%</span></span>
-<span id="cb102-6"><a href="#cb102-6" aria-hidden="true" tabindex="-1"></a>  print <span class="sc">%&gt;%</span></span>
-<span id="cb102-7"><a href="#cb102-7" aria-hidden="true" tabindex="-1"></a>  end_expr</span></code></pre></div>
+<div class="sourceCode" id="cb102"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb102-1"><a href="#cb102-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb102-2"><a href="#cb102-2" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb102-3"><a href="#cb102-3" tabindex="-1"></a>  <span class="fu">group_by</span>(am, vs) <span class="sc">%&gt;%</span></span>
+<span id="cb102-4"><a href="#cb102-4" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;disp&quot;</span>), <span class="fu">mean</span>(.COL)) <span class="sc">%&gt;%</span></span>
+<span id="cb102-5"><a href="#cb102-5" tabindex="-1"></a>  <span class="fu">frame_append</span>(<span class="at">verbose =</span> <span class="cn">TRUE</span>) <span class="sc">%T&gt;%</span></span>
+<span id="cb102-6"><a href="#cb102-6" tabindex="-1"></a>  print <span class="sc">%&gt;%</span></span>
+<span id="cb102-7"><a href="#cb102-7" tabindex="-1"></a>  end_expr</span></code></pre></div>
 <pre><code>#&gt; .DT_[, .transmute_matching(.SD, .which = rlang::quo(c(&quot;mpg&quot;, 
-#&gt;     &quot;disp&quot;)), .hows = rlang::quos(mean(x = .COL))), by = list(am, 
+#&gt;     &quot;disp&quot;)), .hows = rlang::quos(mean(.COL))), by = list(am, 
 #&gt;     vs), verbose = TRUE]
 #&gt; Finding groups using forderv ... forder.c received 32 rows and 2 columns
 #&gt; 0.000s elapsed (0.000s cpu) 
 #&gt; Finding group sizes from the positions (can be avoided to save RAM) ... 0.000s elapsed (0.000s cpu) 
 #&gt; Getting back original order ... forder.c received a vector type &#39;integer&#39; length 4
 #&gt; 0.000s elapsed (0.000s cpu) 
-#&gt; lapply optimization is on, j unchanged as &#39;.transmute_matching(.SD, .which = rlang::quo(c(&quot;mpg&quot;, &quot;disp&quot;)), .hows = rlang::quos(mean(x = .COL)))&#39;
+#&gt; lapply optimization is on, j unchanged as &#39;.transmute_matching(.SD, .which = rlang::quo(c(&quot;mpg&quot;, &quot;disp&quot;)), .hows = rlang::quos(mean(.COL)))&#39;
 #&gt; GForce is on, left j unchanged
 #&gt; Old mean optimization is on, left j unchanged.
 #&gt; Making each group and running j (GForce FALSE) ... The result of j is a named list. It&#39;s very inefficient to create the same names over and over again for each group. When j=list(...), any names are detected, removed and put back after grouping has completed, for efficiency. Using j=transform(), for example, prevents that speedup (consider changing to :=). This message may be upgraded to warning in future.
 #&gt; 
 #&gt;   collecting discontiguous groups took 0.000s for 4 groups
-#&gt;   eval(j) took 0.001s for 4 calls
-#&gt; 0.001s elapsed (0.001s cpu)</code></pre>
+#&gt;   eval(j) took 0.002s for 4 calls
+#&gt; 0.002s elapsed (0.005s cpu)</code></pre>
 <pre><code>#&gt;    am vs      mpg     disp
 #&gt; 1:  1  0 19.75000 206.2167
 #&gt; 2:  1  1 28.37143  89.8000
@@ -1095,9 +1095,9 @@ optimize:</p>
 <p>Corroborated by the statements <code>j unchanged</code>,
 <code>GForce FALSE</code>, etc. Nevertheless, a different syntax can
 enable additional functionality, for instance column renaming:</p>
-<div class="sourceCode" id="cb105"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb105-1"><a href="#cb105-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb105-2"><a href="#cb105-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(am, vs) <span class="sc">%&gt;%</span></span>
-<span id="cb105-3"><a href="#cb105-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;disp&quot;</span>), .(<span class="at">avg =</span> <span class="fu">mean</span>(.COL), <span class="at">min =</span> <span class="fu">min</span>(.COL)))</span></code></pre></div>
+<div class="sourceCode" id="cb105"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb105-1"><a href="#cb105-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb105-2"><a href="#cb105-2" tabindex="-1"></a>  <span class="fu">group_by</span>(am, vs) <span class="sc">%&gt;%</span></span>
+<span id="cb105-3"><a href="#cb105-3" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;disp&quot;</span>), .(<span class="at">avg =</span> <span class="fu">mean</span>(.COL), <span class="at">min =</span> <span class="fu">min</span>(.COL)))</span></code></pre></div>
 <pre><code>#&gt;    am vs  avg.mpg avg.disp min.mpg min.disp
 #&gt; 1:  1  0 19.75000 206.2167    15.0    120.3
 #&gt; 2:  1  1 28.37143  89.8000    21.4     71.1
@@ -1106,13 +1106,13 @@ enable additional functionality, for instance column renaming:</p>
 <p>Thus, in order to decide which syntax to use, we must be aware of
 what can be optimized by <code>data.table</code>, but as a general rule
 of thumb, the simpler the better.</p>
-<div class="sourceCode" id="cb107"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb107-1"><a href="#cb107-1" aria-hidden="true" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
-<span id="cb107-2"><a href="#cb107-2" aria-hidden="true" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
-<span id="cb107-3"><a href="#cb107-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(am, vs) <span class="sc">%&gt;%</span></span>
-<span id="cb107-4"><a href="#cb107-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;disp&quot;</span>), .(min, max)) <span class="sc">%&gt;%</span></span>
-<span id="cb107-5"><a href="#cb107-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">frame_append</span>(<span class="at">verbose =</span> <span class="cn">TRUE</span>) <span class="sc">%T&gt;%</span></span>
-<span id="cb107-6"><a href="#cb107-6" aria-hidden="true" tabindex="-1"></a>  print <span class="sc">%&gt;%</span></span>
-<span id="cb107-7"><a href="#cb107-7" aria-hidden="true" tabindex="-1"></a>  end_expr</span></code></pre></div>
+<div class="sourceCode" id="cb107"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb107-1"><a href="#cb107-1" tabindex="-1"></a>DT <span class="sc">%&gt;%</span></span>
+<span id="cb107-2"><a href="#cb107-2" tabindex="-1"></a>  start_expr <span class="sc">%&gt;%</span></span>
+<span id="cb107-3"><a href="#cb107-3" tabindex="-1"></a>  <span class="fu">group_by</span>(am, vs) <span class="sc">%&gt;%</span></span>
+<span id="cb107-4"><a href="#cb107-4" tabindex="-1"></a>  <span class="fu">transmute_sd</span>(<span class="fu">c</span>(<span class="st">&quot;mpg&quot;</span>, <span class="st">&quot;disp&quot;</span>), .(min, max)) <span class="sc">%&gt;%</span></span>
+<span id="cb107-5"><a href="#cb107-5" tabindex="-1"></a>  <span class="fu">frame_append</span>(<span class="at">verbose =</span> <span class="cn">TRUE</span>) <span class="sc">%T&gt;%</span></span>
+<span id="cb107-6"><a href="#cb107-6" tabindex="-1"></a>  print <span class="sc">%&gt;%</span></span>
+<span id="cb107-7"><a href="#cb107-7" tabindex="-1"></a>  end_expr</span></code></pre></div>
 <pre><code>#&gt; .DT_[, c(min = lapply(.SD, min), max = lapply(.SD, max)), by = list(am, 
 #&gt;     vs), .SDcols = c(c(&quot;mpg&quot;, &quot;disp&quot;)), verbose = TRUE]
 #&gt; Finding groups using forderv ... forder.c received 32 rows and 2 columns
@@ -1125,7 +1125,7 @@ of thumb, the simpler the better.</p>
 #&gt; Making each group and running j (GForce TRUE) ... gforce initial population of grp took 0.000
 #&gt; gforce assign high and low took 0.000
 #&gt; gforce eval took 0.000
-#&gt; 0.000s elapsed (0.001s cpu)</code></pre>
+#&gt; 0.000s elapsed (0.000s cpu)</code></pre>
 <pre><code>#&gt;    am vs  mpg  disp  mpg disp
 #&gt; 1:  1  0 15.0 120.3 26.0  351
 #&gt; 2:  1  1 21.4  71.1 33.9  121
